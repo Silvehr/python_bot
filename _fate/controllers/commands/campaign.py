@@ -63,12 +63,28 @@ async def cmd_create_fate_campaign(
 @ACL.include
 @arc.slash_command('del-fate-campaign', 'usuwa kampanie w systemie fate')
 async def cmd_del_fate_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
+  
+  #
+  # security check
+  #
+  
+  campaign : Campaign
+  try:
+    campaign = FATE_CAMPAIGN_DB[name]
+  except KeyError:
+    return await ctx.respond(f"Nie znaleziono kampani w systemie **FATE Core** o nazwie **\"{name}\"**")
+  
+  if not (str(ctx.author.id) in campaign.gms):
+    return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
+  
+  #
+  # security check
+  #
+  
   msg = f'poprawinie usunięto kampanie {name}'
-  if name in FATE_CAMPAIGN_DB:
-    roles = FATE_CAMPAIGN_DB[name].roles.copy()
-    del FATE_CAMPAIGN_DB[name]
-  else:
-    return await ctx.respond('nie ma takiej kampani')
+  roles = campaign.roles.copy()
+  del FATE_CAMPAIGN_DB[name]
+  
   guild = ctx.get_guild()
   channels = guild.get_channels()
   categories = {cid: ch for cid, ch in channels.items() if ch.type == hikari.ChannelType.GUILD_CATEGORY}
@@ -94,7 +110,24 @@ async def cmd_add_player_to_fate_campaign(
   name: arc.Option[str, arc.StrParams('nazwa kampani')],
   user: arc.Option[hikari.User, arc.UserParams('gracz do dodania')],
 ):
-  campaign = FATE_CAMPAIGN_DB[name]
+  
+  #
+  # security check
+  #
+  
+  campaign : Campaign
+  try:
+    campaign = FATE_CAMPAIGN_DB[name]
+  except KeyError:
+    return await ctx.respond(f"Nie znaleziono kampani w systemie **FATE Core** o nazwie **\"{name}\"**")
+  
+  if not (str(ctx.author.id) in campaign.gms):
+    return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
+  
+  #
+  # security check
+  #
+  
   if not (str(user.id) in campaign.players):
     campaign.players.append(user.id)
     FATE_CAMPAIGN_DB[name] = campaign
@@ -109,7 +142,26 @@ async def cmd_del_player_from_fate_campaign(
   name: arc.Option[str, arc.StrParams('nazwa kampani')],
   user: arc.Option[hikari.User, arc.UserParams('gracz do usunięcia')],
 ):
-  campaign = FATE_CAMPAIGN_DB[name]
+  #
+  # security check
+  #
+  
+  campaign : Campaign
+  try:
+    campaign = FATE_CAMPAIGN_DB[name]
+  except KeyError:
+    return await ctx.respond(f"Nie znaleziono kampani w systemie **FATE Core** o nazwie **\"{name}\"**")
+  
+  if not (str(ctx.author.id) in campaign.gms):
+    return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
+  
+  #
+  # security check
+  #
+  
+  if not (str(ctx.author.id) in campaign.gms):
+    return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
+  
   userid = str(user.id)
   if str(user.id) in campaign.players:
   
@@ -124,7 +176,6 @@ async def cmd_del_player_from_fate_campaign(
   else:
     await ctx.respond(f"gracza {user.global_name} nie było w tej kampani")
   
-
 @ACL.include
 @arc.slash_command('show-fate-campaign', 'pokazuje info o kampani')
 async def cmd_show_fate_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
