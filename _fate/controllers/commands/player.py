@@ -13,9 +13,12 @@ async def cmd_add_player_to_fate_campaign(
   user: arc.Option[hikari.User, arc.UserParams('gracz do dodania')],
 ):
   campaign = FATE_CAMPAIGN_DB[name]
-  campaign.players.append(user.id)
-  FATE_CAMPAIGN_DB[name] = campaign
-  await ctx.respond(f'dodano gracza {user} do kampani {name}')
+  if not (str(user.id) in campaign.players):
+    campaign.players.append(user.id)
+    FATE_CAMPAIGN_DB[name] = campaign
+    await ctx.respond(f'dodano gracza {user} do kampani {name}')
+  else:
+    await ctx.respond(f"gracz {user.global_name} był już w tej kampani")
 
 @ACL.include
 @arc.slash_command('kp-fate', 'karta postaci fate')

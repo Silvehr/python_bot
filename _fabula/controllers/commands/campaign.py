@@ -15,8 +15,10 @@ async def cmd_add_player_to_fabula_campaign(
   campaign = FABULA_CAMPAIGN_DB[name]
   if not (str(user.id) in campaign.players):
     campaign.players.append(user.id)
-  FABULA_CAMPAIGN_DB[name] = campaign
-  await ctx.respond(f'dodano gracza {user} do kampani {name}')
+    FABULA_CAMPAIGN_DB[name] = campaign
+    await ctx.respond(f'dodano gracza {user} do kampani {name}')
+  else:
+    await ctx.respond(f"gracz {user.global_name} był już w tej kampani")
 
 @ACL.include
 @arc.slash_command('create-fabula-campaign', 'tworzy kampanię w systemie fabula')
