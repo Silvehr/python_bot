@@ -6,8 +6,8 @@ from _fate.local.consts import *
 import tcrutils as tcr
 
 @ACL.include
-@arc.slash_command('kp_fate', 'karta postaci fate')
-async def cmd_kpfate(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('Imie postaci')] = None):
+@arc.slash_command('kp-fate', 'karta postaci fate')
+async def cmd_kp_fate(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('Imie postaci')] = None):
   autid = ctx.author.id
   cname = name
   if cname is None:

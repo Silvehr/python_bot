@@ -5,7 +5,7 @@ from common.dsc import *
 
 @ACL.include
 @arc.slash_command('create-fate-player', 'dodaje gracza fate')
-async def cmd_addplayerfate(
+async def cmd_create_fate_player(
   ctx: arc.GatewayContext,
   name: arc.Option[str, arc.StrParams('imie postaci')],
   aspect: arc.Option[str, arc.StrParams('aspekty postaci rozdzielone ,')],

@@ -7,7 +7,7 @@ import tcrutils as tcr
 
 @ACL.include
 @arc.slash_command('create-fate-campaign', 'tworzy kampanię w systemie fate')
-async def cmd_add_campaign_fate(  
+async def cmd_create_fate_campaign(  
     ctx: arc.GatewayContext,
     channels: arc.Option[bool, arc.BoolParams('czy tworzyć kanały?')],
     name: arc.Option[str, arc.StrParams('Nazwa kampani')],

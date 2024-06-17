@@ -6,8 +6,8 @@ from _fabula.local.consts import *
 import tcrutils as tcr
 
 @ACL.include
-@arc.slash_command('add-campaign-fabula', 'dodaje kampanię w systemie fabula')
-async def cmd_add_campaign_fate(  
+@arc.slash_command('create-fabula-campaign', 'tworzy kampanię w systemie fabula')
+async def cmd_create_fabula_campaign(  
     ctx: arc.GatewayContext,
     channels: arc.Option[bool, arc.BoolParams('czy tworzyć kanały?')],
     name: arc.Option[str, arc.StrParams('Nazwa kampani')],

@@ -8,7 +8,7 @@ import tcrutils as tcr
 
 @ACL.include
 @arc.slash_command('show-fate-campaign', 'pokazuje info o kampani')
-async def cmd_campaigninfo(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
+async def cmd_show_fate_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
   try:
     campaign = FATE_CAMPAIGN_DB[name]
   except KeyError:

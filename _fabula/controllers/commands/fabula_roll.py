@@ -5,8 +5,8 @@ from _fabula.local.consts import *
 import random as rng
 
 @ACL.include
-@arc.slash_command('fabularoll', 'rzuca na staty twojej postaci w fabula ultima')
-async def cmd_fabularoll(ctx: arc.GatewayContext, staty: arc.Option[str, arc.StrParams('staty na które rzucasz')]):
+@arc.slash_command('fabula-roll', 'rzuca na staty twojej postaci w fabula ultima')
+async def cmd_fabula_roll(ctx: arc.GatewayContext, staty: arc.Option[str, arc.StrParams('staty na które rzucasz')]):
   staty = staty.upper()
   staty_split = staty.split()
   if len(staty_split) == 1:

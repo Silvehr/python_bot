@@ -3,8 +3,8 @@ from _fabula.models.FabulaPlayer import *
 from _fabula.local.consts import *
 
 @ACL.include
-@arc.slash_command('add-player-fabula', 'dodaje gracza fabula')
-async def cmd_addplayerfabula(
+@arc.slash_command('add-fabula-player', 'tworzy gracza fabula')
+async def cmd_create_fabula_player(
   ctx: arc.GatewayContext,
   name: arc.Option[str, arc.StrParams('imie postaci')],
   skill: arc.Option[str, arc.StrParams('umiejki twojej postaci')],

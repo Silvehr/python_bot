@@ -7,7 +7,7 @@ import tcrutils as tcr
 
 @ACL.include
 @arc.slash_command('add-player-to-fabula-campaign', 'dodaje gracza do kampani w systemie fabula')
-async def cmd_add_player_to_campaign(
+async def cmd_add_player_to_fabula_campaign(
   ctx: arc.GatewayContext,
   name: arc.Option[str, arc.StrParams('nazwa kampani')],
   user: arc.Option[hikari.User, arc.UserParams('gracz do dodania')],

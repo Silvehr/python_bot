@@ -6,7 +6,6 @@ from common.models.Command import Command
 
 import tcrutils as tcr
 
-
 @BOT.listen(hikari.GuildMessageCreateEvent)
 async def cmd_ea_mode(event: hikari.GuildMessageCreateEvent):
     if event.is_bot or not event.content:

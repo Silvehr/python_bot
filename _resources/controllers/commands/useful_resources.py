@@ -22,7 +22,7 @@ async def cmd_resource(event: hikari.GuildMessageCreateEvent):
                 except KeyError:
                     await event.message.respond(f"Nie posiadam zasobu o nazwie \"{command.get_argument(0)}\"")
             elif command.command() == "list-resources":
-                await event.message.respond('**!RPG komendy** \n "fabula-podr" - podręcznik do Fabula Ultima \n "fate-podr" - podręcznik do Fate Core \n "cyberpunk-podr" - podręcznik do Cyberpunk Red \n "fabula-kp" - Karta postaci do Fabula Ultima \n "fate-kp" - Karta postaci do Fate core \n "cyberpunk-kp" - Karta postaci do Cyberpunk Red \n "fate-skills" - umiejki fate \n "fate-stunts" - strona do sztuczek Fate Core')
+                await event.message.respond('**Zasoby !RPG get** \n "fabula-podr" - podręcznik do Fabula Ultima \n "fate-podr" - podręcznik do Fate Core \n "cyberpunk-podr" - podręcznik do Cyberpunk Red \n "fabula-kp" - Karta postaci do Fabula Ultima \n "fate-kp" - Karta postaci do Fate core \n "cyberpunk-kp" - Karta postaci do Cyberpunk Red \n "fate-skills" - umiejki fate \n "fate-stunts" - strona do sztuczek Fate Core')
             
             
     except Exception as e:

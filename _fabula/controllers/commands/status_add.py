@@ -10,7 +10,7 @@ import inspect
 
 @ACL.include
 @arc.slash_command('status-add', 'dodaje status do postaci')
-async def cmd_status_add(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrParams('imie postaci')], statusy: arc.Option[str, arc.StrParams('status do dodania', choices=list(inspect.getmembers(FabulaStatusEffectType)))]):
+async def cmd_status_add(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrParams('imie postaci')], statusy: arc.Option[str, arc.StrParams('status do dodania', choices=STATUSY_FABULA)]):
   character : FabulaPlayer
   name = name.lower()
   for i in FABULA_PLAYER_DB.keys():
@@ -23,3 +23,4 @@ async def cmd_status_add(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrPa
   managed_skill = get_corresponding_skill(statusy)
   character.skill[managed_skill] -= get_corresponding_debuff(managed_skill, statusy)
   FABULA_PLAYER_DB[name] = character
+  ctx.respond("Pomyślnie dodano status do postaci")

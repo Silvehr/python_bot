@@ -8,8 +8,8 @@ import random as rng
 import tcrutils as tcr
 
 @ACL.include
-@arc.slash_command('kpfabula', 'pokazuje KP postaci')
-async def cmd_KPfabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('imie postaci')] = None):
+@arc.slash_command('kp-fabula', 'pokazuje KP postaci')
+async def cmd_kp_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('imie postaci')] = None):
   autid = ctx.author.id
   cname = name
 

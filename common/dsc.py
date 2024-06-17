@@ -1,11 +1,12 @@
 import hikari
 import miru
 import arc
+import os
 
-MEINID = '569608391840759837'
+MEINID = '574540305597202434'
 
 BOT = hikari.GatewayBot(
-  token="MTI1MTY2OTE4Nzc3NzI2OTc2MQ.GykAoV.4EQ_jXS41PxKK1tIh-KwK016VuegoD_kfJ3oXw",
+  token = os.environ["MaciekBot"],
   intents=hikari.Intents.ALL,
 )
 

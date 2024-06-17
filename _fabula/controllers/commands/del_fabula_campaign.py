@@ -6,8 +6,8 @@ from _fabula.local.consts import *
 import tcrutils as tcr
 
 @ACL.include
-@arc.slash_command('del-campaign-fabula', 'usuwa kampanie w systemie fabula')
-async def cmd_del_campaign_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
+@arc.slash_command('del-fabula-campaign', 'usuwa kampanie w systemie fabula')
+async def cmd_del_fabula_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
   msg = f'poprawinie usunięto kampanie {name}'
   if name in FABULA_CAMPAIGN_DB:
     roles = FABULA_CAMPAIGN_DB[name].roles.copy()

@@ -69,3 +69,6 @@ class ShelveDB:
         self._shelf.sync()
         self._shelf.close()
         self._open = False
+        
+    def __contains__(self, key : str):
+        return key in self._shelf
