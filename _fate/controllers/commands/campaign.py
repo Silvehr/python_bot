@@ -88,6 +88,44 @@ async def cmd_del_fate_campaign(ctx: arc.GatewayContext, name: arc.Option[str, a
   await ctx.respond(msg)    
 
 @ACL.include
+@arc.slash_command('add-player-to-fate-campaign', 'dodaje gracza do kampani w systemie FATE Core')
+async def cmd_add_player_to_fate_campaign(
+  ctx: arc.GatewayContext,
+  name: arc.Option[str, arc.StrParams('nazwa kampani')],
+  user: arc.Option[hikari.User, arc.UserParams('gracz do dodania')],
+):
+  campaign = FATE_CAMPAIGN_DB[name]
+  if not (str(user.id) in campaign.players):
+    campaign.players.append(user.id)
+    FATE_CAMPAIGN_DB[name] = campaign
+    await ctx.respond(f'dodano gracza {user} do kampani {name}')
+  else:
+    await ctx.respond(f"gracz {user.global_name} był już w tej kampani")
+    
+@ACL.include
+@arc.slash_command('del-player-from-fate-campaign', 'usuwa gracza z kampani w systemie FATE Core')
+async def cmd_del_player_from_fate_campaign(  
+  ctx: arc.GatewayContext,
+  name: arc.Option[str, arc.StrParams('nazwa kampani')],
+  user: arc.Option[hikari.User, arc.UserParams('gracz do usunięcia')],
+):
+  campaign = FATE_CAMPAIGN_DB[name]
+  userid = str(user.id)
+  if str(user.id) in campaign.players:
+  
+    off = 0
+      
+    for i in range(len(campaign.players)):
+      if campaign.players[i - off] == userid:
+        campaign.players.pop(i - off)
+        off += 1
+    FATE_CAMPAIGN_DB[name] = campaign
+    await ctx.respond(f'usunięto gracza {user} z kampani {name}')
+  else:
+    await ctx.respond(f"gracza {user.global_name} nie było w tej kampani")
+  
+
+@ACL.include
 @arc.slash_command('show-fate-campaign', 'pokazuje info o kampani')
 async def cmd_show_fate_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
   try:
