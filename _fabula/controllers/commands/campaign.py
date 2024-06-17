@@ -13,7 +13,8 @@ async def cmd_add_player_to_fabula_campaign(
   user: arc.Option[hikari.User, arc.UserParams('gracz do dodania')],
 ):
   campaign = FABULA_CAMPAIGN_DB[name]
-  campaign.players.append(user.id)
+  if not (str(user.id) in campaign.players):
+    campaign.players.append(user.id)
   FABULA_CAMPAIGN_DB[name] = campaign
   await ctx.respond(f'dodano gracza {user} do kampani {name}')
 

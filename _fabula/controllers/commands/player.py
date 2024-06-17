@@ -7,11 +7,11 @@ from common.functions import *
 import tcrutils as tcr
 
 @ACL.include
-@arc.slash_command('add-fabula-player', 'tworzy gracza fabula')
+@arc.slash_command('create-fabula-player', 'tworzy gracza fabula')
 async def cmd_create_fabula_player(
   ctx: arc.GatewayContext,
   name: arc.Option[str, arc.StrParams('imie postaci')],
-  skill: arc.Option[str, arc.StrParams('umiejki twojej postaci')],
+  attributes: arc.Option[str, arc.StrParams('atrybuty twojej postaci (DEX, INS, MP, WLP)')],
   identity: arc.Option[str, arc.StrParams('Identity postaci')],
   origin: arc.Option[str, arc.StrParams('origin postaci')],
   theme: arc.Option[str, arc.StrParams('theme twojej postaci')],
@@ -22,15 +22,26 @@ async def cmd_create_fabula_player(
 ):
   if user is None:
     user = ctx.user
-  skill = skill.split(',')
-  skill = dict([x.split(' ') for x in skill])
-  skill = {x: int(y) for x, y in skill.items()}
+  
+
+  attributes = attributes.split(',')
+  dict_attributes = {}
+  
+  for x in attributes:
+    x = x.strip().split(" ")
+    dict_attributes[x[0]] = int(x[1])
+  
   stats = stats.split(',')
-  stats = dict([x.split(' ') for x in stats])
-  stats = {x: int(y) for x, y in stats.items()}
+  dict_stats = {}
+  
+  for x in stats:
+    x = x.strip().split(" ")
+    dict_stats[x[0]] = int(x[1])
+  
   character_class = character_class.split(',')
-  fabula_player = FabulaPlayer(name, identity, origin, theme, skill, clevel, stats, character_class)
+  fabula_player = FabulaPlayer(name, identity, origin, theme, dict_attributes, clevel, dict_stats, character_class, 0)
   FABULA_PLAYER_DB[str(user.id)] = fabula_player
+  
   await ctx.respond(f'Pomyślnie stworzono gracza {name}')
   
 @ACL.include

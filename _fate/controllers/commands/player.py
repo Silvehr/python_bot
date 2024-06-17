@@ -71,8 +71,12 @@ async def cmd_create_fate_player(
     user = ctx.user
   aspect = aspect.split(',')
   skill = skill.split(',')
-  skill = dict([x.split(' ') for x in skill])
-  skill = {x: int(y) for x, y in skill.items()}
-  fate_player = FatePlayer(name, aspect, skill)
+  dict_skill : dict[str,int] = {}
+  
+  for x in skill:
+    x = x.strip().split(" ")
+    dict_skill[x[0]] = int(x[1])
+    
+  fate_player = FatePlayer(name, aspect, dict_skill)
   FATE_PLAYER_DB[str(user.id)] = fate_player
   await ctx.respond(f'Pomyślnie stworzono gracza {name}')
