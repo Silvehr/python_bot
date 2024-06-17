@@ -1,6 +1,4 @@
-from _fabula.models.FabulaPlayer import *
-from _fabula.models.FabulaStatusEffectType import *
-from _fabula.local.consts import FABULA_PLAYER_DB
+from _fabula.models import *
 
 def get_corresponding_debuff(skill_name :str, status_value : int):
   status_value = status_value.upper()

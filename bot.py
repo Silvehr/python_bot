@@ -1,11 +1,12 @@
 from common.dsc import *
 
-from _backdoor.backdoor import *
-from _developer.developer import *
-from _fabula.fabula import *
-from _fate.fate import *
-from _resources.resources import *
-from _unit_translation.unit_translation import *
+from _backdoor.controllers import * 
+from _developer.controllers import *
+from _fabula.controllers import *
+from _fate.controllers import *
+from _rpg.controllers import *
+from _resources.controllers import *
+from _unit_translation.controllers import *
 
 @BOT.listen(hikari.StartedEvent)
 async def on_started(event: hikari.StartedEvent):

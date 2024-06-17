@@ -1,10 +1,8 @@
-from _backdoor.local.consts import *
-from ...models.EA_Client import EA_Client
+from ...local import *
+from ...models.models import *
 
 from common.dsc import *
 from common.models.Command import Command
-
-import tcrutils as tcr
 
 @BOT.listen(hikari.GuildMessageCreateEvent)
 async def cmd_ea_mode(event: hikari.GuildMessageCreateEvent):
@@ -26,19 +24,19 @@ async def cmd_ea_mode(event: hikari.GuildMessageCreateEvent):
                 user = ANTEK
                 guild = SERWER_ANTKA
                 
-            if not (user in EA_MODE_CLIENTS):
-                EA_MODE_CLIENTS[user] = EA_Client(user)
+            if not (user in EA_MODE_CLIENTS_DB):
+                EA_MODE_CLIENTS_DB[user] = EA_Client(user)
                 
                 
             if action.lower() == "enable":
-                client = EA_MODE_CLIENTS[user]
+                client = EA_MODE_CLIENTS_DB[user]
                 client.enable()
-                EA_MODE_CLIENTS[user] = client
+                EA_MODE_CLIENTS_DB[user] = client
                 await event.message.respond(f"User **{(await BOT.rest.fetch_member(guild=guild, user=user)).global_name}** is an EA Client now on server **{(await BOT.rest.fetch_guild(guild)).name}**")
             elif action.lower() == "disable":
-                client = EA_MODE_CLIENTS[user]
+                client = EA_MODE_CLIENTS_DB[user]
                 client.disable()
-                EA_MODE_CLIENTS[user] = client
+                EA_MODE_CLIENTS_DB[user] = client
                 await event.message.respond(f"User **{(await BOT.rest.fetch_member(guild=guild, user=user)).global_name}** is **not** an EA Client now on server **{(await BOT.rest.fetch_guild(guild)).name}**")
             else:
                 await event.message.respond(f"Ambigous option \"{action}\"")

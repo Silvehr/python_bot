@@ -32,31 +32,29 @@ class ShelveDB:
     def __getitem__(self, key : str):
         key = str(key)
         
-        try:
-            if not self._open:
-                self._shelf = shelve.open(str(self._dir_path))
-                self._open = True
+        if not self._open:
+            self._shelf = shelve.open(str(self._dir_path))
+            self._open = True
             
-            return self._shelf[key]
-        except Exception as e:
-            self._shelf.sync()
-            self._shelf.close()
-            raise Exception from e
+        return self._shelf[key]
         
     def __setitem__(self, key, value):
         key = str(key)
         
-        try:
-            if not self._open:
-                self._shelf = shelve.open(str(self._dir_path))
-                self._open = True
+        if not self._open:
+            self._shelf = shelve.open(str(self._dir_path))
+            self._open = True
             
-            self._shelf[key] = value
-        except Exception as e:
-            self._shelf.sync()
-            self._shelf.close()
-            self._open = False
-            raise Exception from e
+        self._shelf[key] = value
+        
+    def __delitem__(self, key):
+        key = str(key)
+
+        if not self._open:
+            self._shelf = shelve.open(str(self._dir_path))
+            self._open = True
+            
+        self._shelf.pop(key)                
         
     def __enter__(self):
         if not self._open:

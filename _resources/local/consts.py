@@ -1,4 +1,4 @@
-from _resources.models.resource import Resource
+from _resources.models import Resource
 
 RESOURCES = {
     "fabula-podr" : Resource("Podręcznik Fabula Ultima","./resources/fabulapodr.pdf",True),

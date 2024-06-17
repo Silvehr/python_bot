@@ -1,7 +1,7 @@
 from common.models.Command import Command
 from common.dsc import *
 
-from _resources.local.consts import *
+from _resources.local import *
 
 @BOT.listen(hikari.GuildMessageCreateEvent)
 async def cmd_resource(event: hikari.GuildMessageCreateEvent):
