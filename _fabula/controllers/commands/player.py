@@ -29,7 +29,7 @@ async def cmd_create_fabula_player(
   stats = dict([x.split(' ') for x in stats])
   stats = {x: int(y) for x, y in stats.items()}
   character_class = character_class.split(',')
-  fabula_player = FabulaPlayer(name, identity, origin, theme, skill, clevel, stats, character_class)
+  fabula_player = FabulaPlayer(name, identity, origin, theme, skill, clevel, stats, character_class, 0)
   FABULA_PLAYER_DB[str(user.id)] = fabula_player
   await ctx.respond(f'Pomyślnie stworzono gracza {name}')
   
@@ -74,11 +74,11 @@ async def cmd_kp_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPa
   await ctx.respond(
     tcr.discord.embed(
       tcr.Null,
-      f'### Name: {player.character_name} \n Identity: {player.identity} \n Theme: {player.theme} \n Origin: {player.origin}\n Level: {player.clevel} \n Class: {print_list(player.character_class)} \n Skills: {print_dict(player.skill)}\n Stats: {print_dict(player.stats)}\n Current effects: {player.status}\n',
+      f'### Name: {player.name} \n Identity: {player.identity} \n Theme: {player.theme} \n Origin: {player.origin}\n Level: {player.clevel} \n Class: {print_list(player.character_class)} \n Skills: {print_dict(player.skill)}\n Stats: {print_dict(player.stats)}\n Current effects: {player.status}\n',
       color=0xF0BFFF,
       footer='uwu',
       author={
-        'name': f'KP - {player.character_name}',
+        'name': f'KP - {player.name}',
         'icon': 'https://cdn.discordapp.com/attachments/866366097242325016/1209539245673422969/cute-anime-pfp-profile-pictures-girls-29.png?ex=65e74a34&is=65d4d534&hm=b76291968f902ca0ad92962354b9ab748f4d902bbd3ca229ed489dfd0de5bbca&',
       },
     )
@@ -94,18 +94,18 @@ async def cmd_lvlup(ctx: arc.GatewayContext, user: arc.Option[hikari.User, arc.U
   character.stats["HP"] += 1
   character.stats["MP"] += 1
   FABULA_PLAYER_DB[str(user.id)] = character
-  await ctx.respond(f'LVL UP! {character.character_name} ma lvl: {character.clevel}')
+  await ctx.respond(f'LVL UP! {character.name} ma lvl: {character.clevel}')
   
 @ACL.include
 @arc.slash_command('status-add', 'dodaje status do postaci')
 async def cmd_status_add(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrParams('imie postaci')], statusy: arc.Option[str, arc.StrParams('status do dodania', choices=FabulaStatusEffectType.STATUSY.keys())]):
   character : FabulaPlayer
   name = name.lower()
-  for i in FABULA_PLAYER_DB.keys():
-    if(FABULA_PLAYER_DB[i].character_name.lower() == name):
+  for i in FABULA_PLAYER_DB._shelf.keys():
+    if(FABULA_PLAYER_DB[i].name.lower() == name):
       character = FABULA_PLAYER_DB[i]
       break
-  addval = FabulaStatusEffectType.__getattribute__(statusy)
+  addval = FabulaStatusEffectType.__getattribute__(statusy, name)
   if(not (character.status & addval)):
     character.status += addval
   managed_skill = get_corresponding_skill(statusy)
