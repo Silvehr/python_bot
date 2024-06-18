@@ -13,4 +13,5 @@ async def on_started(event: hikari.StartedEvent):
   custom_activity = hikari.Activity(name='Solarite', type=hikari.ActivityType.LISTENING)
   await event.app.update_presence(activity=custom_activity)
 
+
 BOT.run()
