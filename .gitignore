@@ -173,5 +173,4 @@ Scripts/
 bot.spec
 fmt.bat
 pyproject.toml
-pyenv.cfg
-
+pyvenv.cfg

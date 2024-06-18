@@ -6,18 +6,6 @@ from _fate.local import *
 from _fate.models import *
 
 @ACL.include
-@arc.slash_command('add-player-to-fate-campaign', 'dodaje gracza do kampani w systemie FATE Core')
-async def cmd_add_player_to_fate_campaign(
-  ctx: arc.GatewayContext,
-  name: arc.Option[str, arc.StrParams('nazwa kampani')],
-  user: arc.Option[hikari.User, arc.UserParams('gracz do dodania')],
-):
-  campaign = FATE_CAMPAIGN_DB[name]
-  campaign.players.append(user.id)
-  FATE_CAMPAIGN_DB[name] = campaign
-  await ctx.respond(f'dodano gracza {user} do kampani {name}')
-
-@ACL.include
 @arc.slash_command('kp-fate', 'karta postaci fate')
 async def cmd_kp_fate(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('Imie postaci')] = None):
   autid = ctx.author.id
@@ -71,8 +59,12 @@ async def cmd_create_fate_player(
     user = ctx.user
   aspect = aspect.split(',')
   skill = skill.split(',')
-  skill = dict([x.split(' ') for x in skill])
-  skill = {x: int(y) for x, y in skill.items()}
-  fate_player = FatePlayer(name, aspect, skill)
+  dict_skill : dict[str,int] = {}
+  
+  for x in skill:
+    x = x.strip().split(" ")
+    dict_skill[x[0]] = int(x[1])
+    
+  fate_player = FatePlayer(name, aspect, dict_skill)
   FATE_PLAYER_DB[str(user.id)] = fate_player
   await ctx.respond(f'Pomyślnie stworzono gracza {name}')

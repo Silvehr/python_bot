@@ -12,10 +12,68 @@ async def cmd_add_player_to_fabula_campaign(
   name: arc.Option[str, arc.StrParams('nazwa kampani')],
   user: arc.Option[hikari.User, arc.UserParams('gracz do dodania')],
 ):
-  campaign = FABULA_CAMPAIGN_DB[name]
-  campaign.players.append(user.id)
-  FABULA_CAMPAIGN_DB[name] = campaign
-  await ctx.respond(f'dodano gracza {user} do kampani {name}')
+  #
+  # security check
+  #
+  
+  campaign : Campaign
+  try:
+    campaign = FABULA_CAMPAIGN_DB[name]
+  except KeyError:
+    return await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
+  
+  if not (str(ctx.author.id) in campaign.gms):
+    return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
+  
+  #
+  # security check
+  #
+  
+  if not (str(ctx.author.id) in campaign.gms):
+    return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
+  
+  if not (str(user.id) in campaign.players):
+    campaign.players.append(user.id)
+    FABULA_CAMPAIGN_DB[name] = campaign
+    await ctx.respond(f'dodano gracza {user} do kampani {name}')
+  else:
+    await ctx.respond(f"gracz {user.global_name} był już w tej kampani")
+    
+@ACL.include
+@arc.slash_command('del-player-from-fabula-campaign', 'usuwa gracza z kampani w systemie Fabula Ultima')
+async def cmd_del_player_from_fabula_campaign(  
+  ctx: arc.GatewayContext,
+  name: arc.Option[str, arc.StrParams('nazwa kampani')],
+  user: arc.Option[hikari.User, arc.UserParams('gracz do usunięcia')],
+):
+  #
+  # security check
+  #
+  
+  campaign : Campaign
+  try:
+    campaign = FABULA_CAMPAIGN_DB[name]
+  except KeyError:
+    return await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
+  
+  if not (str(ctx.author.id) in campaign.gms):
+    return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
+  
+  #
+  # security check
+  #
+  
+  userid = str(user.id)
+  if str(user.id) in campaign.players:
+    off = 0
+    for i in range(len(campaign.players)):
+      if campaign.players[i - off] == userid:
+        campaign.players.pop(i - off)
+        off +=1
+    FABULA_CAMPAIGN_DB[name] = campaign
+    await ctx.respond(f'usunięto gracza {user} z kampani {name}')
+  else:
+    await ctx.respond(f"gracza {user.global_name} nie było w tej kampani")
 
 @ACL.include
 @arc.slash_command('create-fabula-campaign', 'tworzy kampanię w systemie fabula')
@@ -75,12 +133,27 @@ async def cmd_create_fabula_campaign(
 @ACL.include
 @arc.slash_command('del-fabula-campaign', 'usuwa kampanie w systemie fabula')
 async def cmd_del_fabula_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
+  
+  #
+  # security check
+  #
+  
+  campaign : Campaign
+  try:
+    campaign = FABULA_CAMPAIGN_DB[name]
+  except KeyError:
+    return await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
+  
+  if not (str(ctx.author.id) in campaign.gms):
+    return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
+  
+  #
+  # security check
+  #
+  
   msg = f'poprawinie usunięto kampanie {name}'
-  if name in FABULA_CAMPAIGN_DB:
-    roles = FABULA_CAMPAIGN_DB[name].roles.copy()
-    del FABULA_CAMPAIGN_DB[name]
-  else:
-    return await ctx.respond('nie ma takiej kampani')
+  roles = campaign.roles.copy()
+  del FABULA_CAMPAIGN_DB[name]
   guild = ctx.get_guild()
   channels = guild.get_channels()
   categories = {cid: ch for cid, ch in channels.items() if ch.type == hikari.ChannelType.GUILD_CATEGORY}
