@@ -39,11 +39,7 @@ async def cmd_create_fabula_player(
     dict_stats[x[0]] = int(x[1])
   
   character_class = character_class.split(',')
-<<<<<<< HEAD
-  fabula_player = FabulaPlayer(name, identity, origin, theme, skill, clevel, stats, character_class, 0)
-=======
   fabula_player = FabulaPlayer(name, identity, origin, theme, dict_attributes, clevel, dict_stats, character_class, 0)
->>>>>>> 26bac3feca1f6668067cfb411e6bde70b54b1844
   FABULA_PLAYER_DB[str(user.id)] = fabula_player
   
   await ctx.respond(f'Pomyślnie stworzono gracza {name}')
