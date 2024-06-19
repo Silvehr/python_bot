@@ -59,9 +59,15 @@ async def cmd_del_fabula_player(ctx: arc.GatewayContext, name: arc.Option[str, a
 @ACL.include
 @arc.slash_command('edit-fabula-character', 'edytuje konkretny element postaci w systemie fabula')
 async def cmd_edit_fabula_character(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('Imie postaci')],element: arc.Option[str, arc.StrParams('element do edycji', choices=list(FabulaPlayer.__annotations__))], value: arc.Option[str, arc.StrParams('nowa zawartosc')]):
-  character = FABULA_PLAYER_DB[name]
-  character.__setattr__(element, value)
-  FABULA_PLAYER_DB[name] = character
+  player : FabulaPlayer
+  
+  player = FABULA_PLAYER_DB.get_pair_by_value_attr({"name" : name}) #(id właściciela : postać)
+  
+  if player is None:
+    return await ctx.respond(f"Nie ma postaci o imieniu {name} w bazie postaci **Fabula Ultima**")
+  
+  player[1].__setattr__(element, value)
+  FABULA_PLAYER_DB[player[0]] = player[1]
   await ctx.respond(f'Zmieniono {element} dla {name} na {value}')
   
 @ACL.include

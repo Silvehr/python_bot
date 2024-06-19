@@ -6,7 +6,7 @@ from common.models.Command import Command
 import datetime
 
 @BOT.listen(hikari.GuildMessageCreateEvent)
-async def cmd_break_fun_breaker(event: hikari.GuildMessageCreateEvent):
+async def cmd_send_to_a_break(event: hikari.GuildMessageCreateEvent):
     if event.is_bot or not event.content:
         return
     

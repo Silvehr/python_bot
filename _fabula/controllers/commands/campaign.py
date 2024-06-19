@@ -16,11 +16,10 @@ async def cmd_add_player_to_fabula_campaign(
   # security check
   #
   
-  campaign : Campaign = FABULA_CAMPAIGN_DB.try_get_value(name)
-  try:
-    campaign = FABULA_CAMPAIGN_DB[name]
-  except KeyError:
-    return await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
+  campaign : Campaign = FABULA_CAMPAIGN_DB.get_campaign_by_name(name)
+  
+  if campaign is None:
+    await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
   
   if not (str(ctx.author.id) in campaign.gms):
     return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
@@ -49,12 +48,11 @@ async def cmd_del_player_from_fabula_campaign(
   #
   # security check
   #
+
+  campaign : Campaign = FABULA_CAMPAIGN_DB.get_campaign_by_name(name)
   
-  campaign : Campaign
-  try:
-    campaign = FABULA_CAMPAIGN_DB[name]
-  except KeyError:
-    return await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
+  if campaign is None:
+    await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
   
   if not (str(ctx.author.id) in campaign.gms):
     return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
@@ -173,10 +171,12 @@ async def cmd_del_fabula_campaign(ctx: arc.GatewayContext, name: arc.Option[str,
 @ACL.include
 @arc.slash_command('show-fabula-campaign', 'pokazuje info o kampani')
 async def cmd_show_fabula_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
-  try:
-    campaign = FABULA_CAMPAIGN_DB[name]
-  except KeyError:
-    return await ctx.respond('keep yourself safe nie ma takiej kampani')
+
+  campaign : Campaign = FABULA_CAMPAIGN_DB.get_campaign_by_name(name)
+  
+  if campaign is None:
+    await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
+
   await ctx.respond(
     tcr.discord.embed(
       tcr.Null,

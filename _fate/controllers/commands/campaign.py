@@ -68,11 +68,10 @@ async def cmd_del_fate_campaign(ctx: arc.GatewayContext, name: arc.Option[str, a
   # security check
   #
   
-  campaign : Campaign
-  try:
-    campaign = FATE_CAMPAIGN_DB[name]
-  except KeyError:
-    return await ctx.respond(f"Nie znaleziono kampani w systemie **FATE Core** o nazwie **\"{name}\"**")
+  campaign = FATE_CAMPAIGN_DB.get_campaign(name)
+  
+  if campaign is None:
+    return ctx.respond(f"nie ma kampani w systemie FATE Core o nazwie {name}")
   
   if not (str(ctx.author.id) in campaign.gms):
     return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
@@ -115,11 +114,10 @@ async def cmd_add_player_to_fate_campaign(
   # security check
   #
   
-  campaign : Campaign
-  try:
-    campaign = FATE_CAMPAIGN_DB[name]
-  except KeyError:
-    return await ctx.respond(f"Nie znaleziono kampani w systemie **FATE Core** o nazwie **\"{name}\"**")
+  campaign = FATE_CAMPAIGN_DB.get_campaign(name)
+  
+  if campaign is None:
+    return ctx.respond(f"nie ma kampani w systemie FATE Core o nazwie {name}")
   
   if not (str(ctx.author.id) in campaign.gms):
     return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
@@ -146,11 +144,10 @@ async def cmd_del_player_from_fate_campaign(
   # security check
   #
   
-  campaign : Campaign
-  try:
-    campaign = FATE_CAMPAIGN_DB[name]
-  except KeyError:
-    return await ctx.respond(f"Nie znaleziono kampani w systemie **FATE Core** o nazwie **\"{name}\"**")
+  campaign = FATE_CAMPAIGN_DB.get_campaign_by_name(name)
+  
+  if campaign is None:
+    return ctx.respond(f"nie ma kampani w systemie FATE Core o nazwie {name}")
   
   if not (str(ctx.author.id) in campaign.gms):
     return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
@@ -179,10 +176,11 @@ async def cmd_del_player_from_fate_campaign(
 @ACL.include
 @arc.slash_command('show-fate-campaign', 'pokazuje info o kampani')
 async def cmd_show_fate_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
-  try:
-    campaign = FATE_CAMPAIGN_DB[name]
-  except KeyError:
-    return await ctx.respond('keep yourself safe nie ma takiej kampani')
+  campaign = FATE_CAMPAIGN_DB.get_campaign_by_name(name)
+  
+  if campaign is None:
+    return ctx.respond(f"nie ma kampani w systemie FATE Core o nazwie {name}")
+  
   await ctx.respond(
     tcr.discord.embed(
       tcr.Null,
