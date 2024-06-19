@@ -14,5 +14,4 @@ async def on_started(event: hikari.StartedEvent):
   await event.app.update_presence(activity=custom_activity)
 
 
-
 BOT.run()

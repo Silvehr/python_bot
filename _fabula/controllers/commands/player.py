@@ -11,7 +11,7 @@ import tcrutils as tcr
 async def cmd_create_fabula_player(
   ctx: arc.GatewayContext,
   name: arc.Option[str, arc.StrParams('imie postaci')],
-  attributes: arc.Option[str, arc.StrParams('atrybuty twojej postaci (DEX, INS, MP, WLP)')],
+  attributes: arc.Option[str, arc.StrParams('atrybuty twojej postaci (DEX, INS, MIG, WLP)')],
   identity: arc.Option[str, arc.StrParams('Identity postaci')],
   origin: arc.Option[str, arc.StrParams('origin postaci')],
   theme: arc.Option[str, arc.StrParams('theme twojej postaci')],
@@ -23,20 +23,19 @@ async def cmd_create_fabula_player(
   if user is None:
     user = ctx.user
   
-
   attributes = attributes.split(',')
   dict_attributes = {}
   
   for x in attributes:
     x = x.strip().split(" ")
-    dict_attributes[x[0]] = int(x[1])
+    dict_attributes[x[0].upper()] = int(x[1])
   
   stats = stats.split(',')
   dict_stats = {}
   
   for x in stats:
     x = x.strip().split(" ")
-    dict_stats[x[0]] = int(x[1])
+    dict_stats[x[0].upper()] = int(x[1])
   
   character_class = character_class.split(',')
   fabula_player = FabulaPlayer(name, identity, origin, theme, dict_attributes, clevel, dict_stats, character_class, 0)
@@ -60,9 +59,15 @@ async def cmd_del_fabula_player(ctx: arc.GatewayContext, name: arc.Option[str, a
 @ACL.include
 @arc.slash_command('edit-fabula-character', 'edytuje konkretny element postaci w systemie fabula')
 async def cmd_edit_fabula_character(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('Imie postaci')],element: arc.Option[str, arc.StrParams('element do edycji', choices=list(FabulaPlayer.__annotations__))], value: arc.Option[str, arc.StrParams('nowa zawartosc')]):
-  character = FABULA_PLAYER_DB[name]
-  character.__setattr__(element, value)
-  FABULA_PLAYER_DB[name] = character
+  player : FabulaPlayer
+  
+  player = FABULA_PLAYER_DB.get_pair_by_value_attr({"name" : name}) #(id właściciela : postać)
+  
+  if player is None:
+    return await ctx.respond(f"Nie ma postaci o imieniu {name} w bazie postaci **Fabula Ultima**")
+  
+  player[1].__setattr__(element, value)
+  FABULA_PLAYER_DB[player[0]] = player[1]
   await ctx.respond(f'Zmieniono {element} dla {name} na {value}')
   
 @ACL.include
@@ -71,11 +76,12 @@ async def cmd_kp_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPa
   autid = ctx.author.id
   cname = name
 
+  player : FabulaPlayer
+
   if cname is None:
-    try:
-      player = FABULA_PLAYER_DB[str(autid)]
-    except KeyError:
-      return await ctx.respond('nie jesteś w bazie danych')
+    player = FABULA_PLAYER_DB.try_get_value(cname)
+    if not player[0]:
+      return await ctx.respond("nie jesteś zarejestrowany w bazie danych")
   else:
     try:
       player = FABULA_PLAYER_DB.get_player_by_name(cname)
@@ -85,7 +91,7 @@ async def cmd_kp_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPa
   await ctx.respond(
     tcr.discord.embed(
       tcr.Null,
-      f'### Name: {player.name} \n Identity: {player.identity} \n Theme: {player.theme} \n Origin: {player.origin}\n Level: {player.clevel} \n Class: {print_list(player.character_class)} \n Skills: {print_dict(player.skill)}\n Stats: {print_dict(player.stats)}\n Current effects: {player.status}\n',
+      f'### Name: {player.name} \n Identity: {player.identity} \n Theme: {player.theme} \n Origin: {player.origin}\n Level: {player.clevel} \n Class: {print_list(player.character_class)} \n Skills: {print_dict(player.skill)}\n Stats: {print_dict(player.stats)}\n Current effects: {FabulaStatusEffectType.as_string(player.status)}\n',
       color=0xF0BFFF,
       footer='uwu',
       author={
@@ -110,25 +116,33 @@ async def cmd_lvlup(ctx: arc.GatewayContext, user: arc.Option[hikari.User, arc.U
 @ACL.include
 @arc.slash_command('status-add', 'dodaje status do postaci')
 async def cmd_status_add(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrParams('imie postaci')], statusy: arc.Option[str, arc.StrParams('status do dodania', choices=FabulaStatusEffectType.STATUSY.keys())]):
-  character : FabulaPlayer
-  name = name.lower()
-  for i in FABULA_PLAYER_DB._shelf.keys():
-    if(FABULA_PLAYER_DB[i].name.lower() == name):
-      character = FABULA_PLAYER_DB[i]
-      break
-  addval = FabulaStatusEffectType.STATUSY[statusy]
-  if(not (character.status & addval)):
-    character.status += addval
-  managed_skill = get_corresponding_skill(statusy)
-  character.skill[managed_skill] -= get_corresponding_debuff(managed_skill, statusy)
-  FABULA_PLAYER_DB[name] = character
-  ctx.respond("Pomyślnie dodano status do postaci")
+  
+  owner : str
+  player : FabulaPlayer
+  
+  for i in FABULA_PLAYER_DB.items():
+    if i[1].name.lower() == name.lower():
+      owner = i[0]
+      player = i[1]
+
+  statval = FabulaStatusEffectType.STATUSY[statusy]
+  if(not player.has_status(statval)):
+    player.status += statval
+    
+    managed_skills = get_corresponding_skills(statval)
+    for managed_skill in managed_skills:
+      player.skill[managed_skill] -= get_corresponding_debuff(managed_skill,statval)
+    FABULA_PLAYER_DB[owner] = player
+  
+    await ctx.respond("Pomyślnie dodano status do postaci")
+  else:
+    await ctx.respond(f"Postać posiadała już status **{statusy}**")
 
 @ACL.include
 @arc.slash_command('status-del', 'dodaje status do postaci')
 async def cmd_status_del(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrParams('imie postaci')],statusy: arc.Option[str, arc.StrParams('status do usuniecia', choices=FabulaStatusEffectType.STATUSY.keys())]):
   character = FABULA_PLAYER_DB[name]
-  addval = FabulaStatusEffectType.STATUSY[statusy]
+  addval = FabulaStatusEffectType.__getattribute__(statusy)
   if(character.status & addval):
     character.status -= addval
   managed_skill = get_corresponding_skill(statusy)

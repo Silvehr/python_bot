@@ -33,4 +33,7 @@ class FabulaPlayer(Player):
     self.status = status
 
   def __repr__(self) -> str:
-    return f'{self.character_name}'
+    return f'{self.name}'
+  
+  def has_status(self, stat_val : int) -> bool:
+    return self.status & stat_val

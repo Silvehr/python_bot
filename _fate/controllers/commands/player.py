@@ -9,17 +9,20 @@ from _fate.models import *
 @arc.slash_command('kp-fate', 'karta postaci fate')
 async def cmd_kp_fate(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('Imie postaci')] = None):
   autid = ctx.author.id
-  cname = name
-  if cname is None:
-    try:
-      player = FATE_PLAYER_DB[str(autid)]
-    except KeyError:
-      return await ctx.respond('nie jesteś w bazie danych')
+  player : FatePlayer
+  
+  if name is None:
+    player = FATE_PLAYER_DB.get_player(autid)
+    
+    if player is None:
+      return await ctx.respond("Nie posiadasz postaci zarejestrowanej w bazie postaci FATE Core")
+  
   else:
-    try:
-      player = FATE_PLAYER_DB.get_player_by_name(name)
-    except IndexError:
-      return await ctx.respond('nie ma takiej postaci')
+    player = FATE_PLAYER_DB.get_player_by_name(name)
+    
+    if player is None:
+      return await ctx.respond(f"Nie ma postaci zarejestrowanej w bazie postaci FATE Core o imieniu {name}")
+
   await ctx.respond(
     tcr.discord.embed(
       tcr.Null,
@@ -36,14 +39,11 @@ async def cmd_kp_fate(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPara
 @ACL.include
 @arc.slash_command('del-fate-player', 'usuwa gracza fate')
 async def cmd_del_fate_player(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('imie postaci do usunięcia')]):
-  try:
-    v = FATE_PLAYER_DB.get_player_by_name(name)
-    for key, value in FATE_PLAYER_DB.items():
-      if value == v:
-        del FATE_PLAYER_DB[key]
-        break
-  except (KeyError, IndexError):
-    return await ctx.respond('nie ma takiej postaci chyba dobrze')
+  player = FATE_PLAYER_DB.get_pair_by_value_attr({"name" : name})
+  if player is None:
+    return await ctx.respond(f"gracz o nazwie {name} nie istniał")
+  
+  del FATE_PLAYER_DB[player[0]]
   return await ctx.respond(f'pomyślnie usunięto gracza {name}')
 
 @ACL.include
