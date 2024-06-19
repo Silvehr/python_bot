@@ -12,5 +12,5 @@ class FabulaStatusEffectType:
     "poisoned" : 32
   }
   
-  def __getattribute__(self, name: str) -> Any:
+  def __getattr__(self, name: str) -> Any:
     return self.STATUSY[name]

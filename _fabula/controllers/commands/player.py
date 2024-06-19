@@ -116,7 +116,7 @@ async def cmd_status_add(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrPa
     if(FABULA_PLAYER_DB[i].name.lower() == name):
       character = FABULA_PLAYER_DB[i]
       break
-  addval = FabulaStatusEffectType.__getattribute__(statusy, name)
+  addval = FabulaStatusEffectType.STATUSY[statusy]
   if(not (character.status & addval)):
     character.status += addval
   managed_skill = get_corresponding_skill(statusy)
@@ -128,7 +128,7 @@ async def cmd_status_add(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrPa
 @arc.slash_command('status-del', 'dodaje status do postaci')
 async def cmd_status_del(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrParams('imie postaci')],statusy: arc.Option[str, arc.StrParams('status do usuniecia', choices=FabulaStatusEffectType.STATUSY.keys())]):
   character = FABULA_PLAYER_DB[name]
-  addval = FabulaStatusEffectType.__getattribute__(statusy)
+  addval = FabulaStatusEffectType.STATUSY[statusy]
   if(character.status & addval):
     character.status -= addval
   managed_skill = get_corresponding_skill(statusy)
