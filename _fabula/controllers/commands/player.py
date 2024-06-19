@@ -73,10 +73,9 @@ async def cmd_kp_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPa
   player : FabulaPlayer
 
   if cname is None:
-    try:
-      player = FABULA_PLAYER_DB[str(autid)]
-    except KeyError:
-      return await ctx.respond('nie jesteś w bazie danych')
+    player = FABULA_PLAYER_DB.try_get_value(cname)
+    if not player[0]:
+      return await ctx.respond("nie jesteś zarejestrowany w bazie danych")
   else:
     try:
       player = FABULA_PLAYER_DB.get_player_by_name(cname)
@@ -115,13 +114,12 @@ async def cmd_status_add(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrPa
   owner : str
   player : FabulaPlayer
   
-  for i in FABULA_PLAYER_DB._shelf.items():
+  for i in FABULA_PLAYER_DB.items():
     if i[1].name.lower() == name.lower():
       owner = i[0]
       player = i[1]
 
   statval = FabulaStatusEffectType.STATUSY[statusy]
-  tcr.console(statval)
   if(not player.has_status(statval)):
     player.status += statval
     
@@ -141,13 +139,12 @@ async def cmd_status_del(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrPa
   owner : str
   player : FabulaPlayer
 
-  for i in FABULA_PLAYER_DB._shelf.items():
+  for i in FABULA_PLAYER_DB.items():
     if i[1].name.lower() == name.lower():
       owner = i[0]
       player = i[1]
   
   statval = FabulaStatusEffectType.STATUSY[statusy]
-  tcr.console(statval)
   if(player.has_status(statval)):
     player.status -= statval
     

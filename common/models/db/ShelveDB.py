@@ -1,6 +1,7 @@
 import shelve
 from pathlib import *
 import os
+from typing import Any
 
 class ShelveDB:
     DEFAULT_DB_FOLDER = "./db"
@@ -70,3 +71,33 @@ class ShelveDB:
         
     def __contains__(self, key : str):
         return key in self._shelf
+    
+    def get_value(self, key) -> Any | None:
+        return self._shelf.get(key)
+    
+    def items(self) -> dict:
+        return self._shelf.items()
+    
+    #
+    # if found:
+    #   returns the first key value pair for which ALL attributes listed in attrs take passed values
+    # else:
+    #   returns None
+    #
+    def get_pair_by_value_attr(self, attrs : dict[str, Any]) -> tuple | None:
+        for pair in self._shelf.items():
+            for attr in attrs.items():
+                if getattr(pair[1], attr[0]) != attr[1]:
+                    break
+                return pair
+        
+        return None
+    
+    def get_value_by_attr(self, attrs : dict[str, Any]) -> Any | None:
+        for value in self._shelf.values():
+            for attr in attrs.items():
+                if getattr(value, attr[0]) != attr[1]:
+                    break
+                return value
+            
+        return None

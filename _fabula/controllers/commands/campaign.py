@@ -16,7 +16,7 @@ async def cmd_add_player_to_fabula_campaign(
   # security check
   #
   
-  campaign : Campaign
+  campaign : Campaign = FABULA_CAMPAIGN_DB.try_get_value(name)
   try:
     campaign = FABULA_CAMPAIGN_DB[name]
   except KeyError:
@@ -138,10 +138,8 @@ async def cmd_del_fabula_campaign(ctx: arc.GatewayContext, name: arc.Option[str,
   # security check
   #
   
-  campaign : Campaign
-  try:
-    campaign = FABULA_CAMPAIGN_DB[name]
-  except KeyError:
+  campaign = FABULA_CAMPAIGN_DB.get_value(name)
+  if campaign is None:
     return await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
   
   if not (str(ctx.author.id) in campaign.gms):
