@@ -145,7 +145,7 @@ async def cmd_status_del(ctx: arc.GatewayContext,name: arc.Option[str, arc.StrPa
   addval = FabulaStatusEffectType.__getattribute__(statusy)
   if(character.status & addval):
     character.status -= addval
-  managed_skill = get_corresponding_skill(statusy)
+  managed_skill = get_corresponding_skills(statusy)
   character.skill[managed_skill] += get_corresponding_debuff(managed_skill, statusy)
   FABULA_PLAYER_DB[name] = character
   ctx.respond("Pomyślnie usunięto status do postaci")
