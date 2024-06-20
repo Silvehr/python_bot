@@ -79,14 +79,12 @@ async def cmd_kp_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPa
   player : FabulaPlayer
 
   if cname is None:
-    player = FABULA_PLAYER_DB.try_get_value(cname)
-    if not player[0]:
-      return await ctx.respond("nie jesteś zarejestrowany w bazie danych")
+    player = FABULA_PLAYER_DB.get_player(autid)
   else:
-    try:
-      player = FABULA_PLAYER_DB.get_player_by_name(cname)
-    except IndexError:
-      return await ctx.respond('nie ma takiej postaci')
+    player = FABULA_PLAYER_DB.get_player_by_name(cname)
+    
+  if player is None:
+      return await ctx.respond("nie jesteś zarejestrowany w bazie danych lub nie posiadasz postaci w systemie Fabula Ultima")
 
   await ctx.respond(
     tcr.discord.embed(
@@ -103,15 +101,22 @@ async def cmd_kp_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPa
   
 @ACL.include
 @arc.slash_command('lvlup', 'zwiększa lvl postaci o 1')
-async def cmd_lvlup(ctx: arc.GatewayContext, user: arc.Option[hikari.User, arc.UserParams('Postać do lvlupa')] = None):
-  if user is None:
-    user = ctx.user
-  character = FABULA_PLAYER_DB[str(user.id)]
-  character.clevel += 1
-  character.stats["HP"] += 1
-  character.stats["MP"] += 1
-  FABULA_PLAYER_DB[str(user.id)] = character
-  await ctx.respond(f'LVL UP! {character.name} ma lvl: {character.clevel}')
+async def cmd_lvlup(ctx: arc.GatewayContext, name: arc.Option[hikari.User, arc.UserParams('Imię postaci do lvlupa')] = None):
+  player : FabulaPlayer
+  
+  if name:
+    player = FABULA_PLAYER_DB.get_player_by_name(name)
+    return await ctx.respond(f"Nie ma postaci o imieniu **{name}** w bazie postaci Fabula Ultima")
+  else:
+    player = FABULA_PLAYER_DB.get_player(name)
+    if player is None:
+      return await ctx.respond("Nie jesteś zarejestrowany/zarejestrowana w bazie graczy systemu Fabula Ultima")
+  
+  player.clevel += 1
+  player.stats["HP"] += 1
+  player.stats["MP"] += 1
+  FABULA_PLAYER_DB[str(name.id)] = player
+  await ctx.respond(f'LVL UP! {player.name} ma lvl: {player.clevel}')
   
 @ACL.include
 @arc.slash_command('status-add', 'dodaje status do postaci')

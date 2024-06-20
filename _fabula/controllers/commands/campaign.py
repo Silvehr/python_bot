@@ -136,7 +136,7 @@ async def cmd_del_fabula_campaign(ctx: arc.GatewayContext, name: arc.Option[str,
   # security check
   #
   
-  campaign = FABULA_CAMPAIGN_DB.get_value(name)
+  campaign = FABULA_CAMPAIGN_DB.get_campaign(name)
   if campaign is None:
     return await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
   
