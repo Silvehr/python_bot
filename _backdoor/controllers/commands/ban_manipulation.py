@@ -1,4 +1,4 @@
-from common.dsc import *
+from common.dsc.gateways import *
 from common.models.Command import *
 
 @BOT.listen(hikari.GuildMessageCreateEvent)

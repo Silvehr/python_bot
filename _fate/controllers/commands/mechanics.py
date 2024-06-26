@@ -1,4 +1,4 @@
-from common.dsc import *
+from common.dsc.gateways import *
 import random as rng
 from common.functions import *
 from _fate.local import FATE_PLAYER_DB, STATY_FATE

@@ -1,4 +1,4 @@
-from common.dsc import *
+from common.dsc.gateways import *
 from common.functions import *
 import tcrutils as tcr
 

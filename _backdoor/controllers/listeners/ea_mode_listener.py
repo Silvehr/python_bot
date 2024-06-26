@@ -2,7 +2,7 @@ import hikari.embeds
 from ...local import *
 from ...models.models import *
 
-from common.dsc import *
+from common.dsc.gateways import *
 @BOT.listen(hikari.GuildMessageCreateEvent)
 async def cmd_ea_mode_listener(event: hikari.GuildMessageCreateEvent):
     if event.is_bot or not event.content:

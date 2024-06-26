@@ -3,6 +3,7 @@ from enum import Enum
 class CampaignSystem(Enum):
   FATE = 'fate'
   FABULA = 'fabula'
+  CYBERPUNK = 'cyberpunk'
 
 class Campaign:
   name: str

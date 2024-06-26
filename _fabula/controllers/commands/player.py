@@ -1,4 +1,4 @@
-from common.dsc import *
+from common.dsc.gateways import *
 from _fabula.models import *
 from _fabula.local import *
 
@@ -101,7 +101,7 @@ async def cmd_kp_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPa
   
 @ACL.include
 @arc.slash_command('lvlup', 'zwiększa lvl postaci o 1')
-async def cmd_lvlup(ctx: arc.GatewayContext, name: arc.Option[str, arc.UserParams('Imię postaci do lvlupa')] = None):
+async def cmd_lvlup(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('Imię postaci do lvlupa')] = None):
   player : FabulaPlayer
   
   if name:

@@ -1,5 +1,5 @@
 from common.models.Command import Command
-from common.dsc import *
+from common.dsc.gateways import *
 
 from _resources.local import *
 

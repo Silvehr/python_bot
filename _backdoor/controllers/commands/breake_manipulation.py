@@ -1,6 +1,6 @@
 from ...local import *
 
-from common.dsc import *
+from common.dsc.gateways import *
 from common.models.Command import Command
 
 import datetime

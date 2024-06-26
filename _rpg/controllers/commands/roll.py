@@ -1,4 +1,4 @@
-from common.dsc import *
+from common.dsc.gateways import *
 import random as rng
 
 @ACL.include

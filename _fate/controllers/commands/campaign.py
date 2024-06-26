@@ -29,14 +29,7 @@ async def cmd_create_fate_campaign(
     gm_role = await BOT.rest.create_role(ctx.guild_id, name=f'GM - {name}', color='#fd04f8')
     player_role = await BOT.rest.create_role(ctx.guild_id, name=f'Gracz - {name}', color='#6AFD04')
     if channels:
-        category = await BOT.rest.create_guild_category(ctx.guild_id, name)
-        await BOT.rest.create_guild_text_channel(ctx.guild_id, 'ogólne', category=category)
-        await BOT.rest.create_guild_text_channel(ctx.guild_id, 'rzeczy-kampaniowe', category=category)
-        await BOT.rest.create_guild_text_channel(ctx.guild_id, 'funny', category=category)
-        await BOT.rest.create_guild_text_channel(ctx.guild_id, 'kpeki', category=category)
-        await BOT.rest.create_guild_text_channel(ctx.guild_id, 'komendy-i-pierwiastki', category=category)
-        await BOT.rest.create_guild_voice_channel(ctx.guild_id, 'sesja', category=category)
-        await BOT.rest.create_guild_voice_channel(ctx.guild_id, 'spiskowo', category=category)
+      await create_campaign_channels_async(ctx.guild_id, name)
     campaign = Campaign(name, system, universe, gms, players, roles=[gm_role.id, player_role.id])
     FATE_CAMPAIGN_DB[name] = campaign
     gm_errors = []

@@ -1,13 +1,12 @@
 from common.models.Campaign import *
 from common.dsc import *
-
 from ...local import *
 
 import tcrutils as tcr
 
 @ACL.include
-@arc.slash_command('add-player-to-fabula-campaign', 'dodaje gracza do kampani w systemie fabula')
-async def cmd_add_player_to_fabula_campaign(
+@arc.slash_command('add-player-to-cyberpunk-campaign', 'dodaje gracza do kampani w systemie cyberpunk')
+async def cmd_add_player_to_cyberpunk_campaign(
   ctx: arc.GatewayContext,
   name: arc.Option[str, arc.StrParams('nazwa kampani')],
   user: arc.Option[hikari.User, arc.UserParams('gracz do dodania')],
@@ -16,7 +15,7 @@ async def cmd_add_player_to_fabula_campaign(
   # security check
   #
   
-  campaign : Campaign = FABULA_CAMPAIGN_DB.get_campaign_by_name(name)
+  campaign : Campaign = CYBERPUNK_CAMPAIGN_DB.get_campaign_by_name(name)
   
   if campaign is None:
     await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
@@ -33,14 +32,14 @@ async def cmd_add_player_to_fabula_campaign(
   
   if not (str(user.id) in campaign.players):
     campaign.players.append(user.id)
-    FABULA_CAMPAIGN_DB[name] = campaign
+    CYBERPUNK_CAMPAIGN_DB[name] = campaign
     await ctx.respond(f'dodano gracza {user} do kampani {name}')
   else:
     await ctx.respond(f"gracz {user.global_name} był już w tej kampani")
     
 @ACL.include
-@arc.slash_command('del-player-from-fabula-campaign', 'usuwa gracza z kampani w systemie Fabula Ultima')
-async def cmd_del_player_from_fabula_campaign(  
+@arc.slash_command('del-player-from-cyberpunk-campaign', 'usuwa gracza z kampani w systemie Fabula Ultima')
+async def cmd_del_player_from_cyberpunk_campaign(  
   ctx: arc.GatewayContext,
   name: arc.Option[str, arc.StrParams('nazwa kampani')],
   user: arc.Option[hikari.User, arc.UserParams('gracz do usunięcia')],
@@ -49,7 +48,7 @@ async def cmd_del_player_from_fabula_campaign(
   # security check
   #
 
-  campaign : Campaign = FABULA_CAMPAIGN_DB.get_campaign_by_name(name)
+  campaign : Campaign = CYBERPUNK_CAMPAIGN_DB.get_campaign_by_name(name)
   
   if campaign is None:
     await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
@@ -68,14 +67,14 @@ async def cmd_del_player_from_fabula_campaign(
       if campaign.players[i - off] == userid:
         campaign.players.pop(i - off)
         off +=1
-    FABULA_CAMPAIGN_DB[name] = campaign
+    CYBERPUNK_CAMPAIGN_DB[name] = campaign
     await ctx.respond(f'usunięto gracza {user} z kampani {name}')
   else:
     await ctx.respond(f"gracza {user.global_name} nie było w tej kampani")
 
 @ACL.include
-@arc.slash_command('create-fabula-campaign', 'tworzy kampanię w systemie fabula')
-async def cmd_create_fabula_campaign(  
+@arc.slash_command('create-cyberpunk-campaign', 'tworzy kampanię w systemie cyberpunk')
+async def cmd_create_cyberpunk_campaign(  
     ctx: arc.GatewayContext,
     channels: arc.Option[bool, arc.BoolParams('czy tworzyć kanały?')],
     name: arc.Option[str, arc.StrParams('Nazwa kampani')],
@@ -97,7 +96,7 @@ async def cmd_create_fabula_campaign(
     if channels:
       await create_campaign_channels_async(ctx.guild_id, name)
         
-    FABULA_CAMPAIGN_DB[name] = Campaign(name, CampaignSystem.FATE, universe, gms, players, roles=[gm_role.id, player_role.id])
+    CYBERPUNK_CAMPAIGN_DB[name] = Campaign(name, CampaignSystem.FATE, universe, gms, players, roles=[gm_role.id, player_role.id])
     
     gm_errors = []
     for id in gms:
@@ -122,14 +121,14 @@ async def cmd_create_fabula_campaign(
     await ctx.respond(msg)
     
 @ACL.include
-@arc.slash_command('del-fabula-campaign', 'usuwa kampanie w systemie fabula')
-async def cmd_del_fabula_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
+@arc.slash_command('del-cyberpunk-campaign', 'usuwa kampanie w systemie cyberpunk')
+async def cmd_del_cyberpunk_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
   
   #
   # security check
   #
   
-  campaign = FABULA_CAMPAIGN_DB.get_campaign(name)
+  campaign = CYBERPUNK_CAMPAIGN_DB.get_campaign(name)
   if campaign is None:
     return await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
   
@@ -142,7 +141,7 @@ async def cmd_del_fabula_campaign(ctx: arc.GatewayContext, name: arc.Option[str,
   
   msg = f'poprawinie usunięto kampanie {name}'
   roles = campaign.roles.copy()
-  del FABULA_CAMPAIGN_DB[name]
+  del CYBERPUNK_CAMPAIGN_DB[name]
   guild = ctx.get_guild()
   channels = guild.get_channels()
   categories = {cid: ch for cid, ch in channels.items() if ch.type == hikari.ChannelType.GUILD_CATEGORY}
@@ -162,10 +161,10 @@ async def cmd_del_fabula_campaign(ctx: arc.GatewayContext, name: arc.Option[str,
   await ctx.respond(msg)
 
 @ACL.include
-@arc.slash_command('show-fabula-campaign', 'pokazuje info o kampani')
-async def cmd_show_fabula_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
+@arc.slash_command('show-cyberpunk-campaign', 'pokazuje info o kampani')
+async def cmd_show_cyberpunk_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
 
-  campaign : Campaign = FABULA_CAMPAIGN_DB.get_campaign_by_name(name)
+  campaign : Campaign = CYBERPUNK_CAMPAIGN_DB.get_campaign_by_name(name)
   
   if campaign is None:
     await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")

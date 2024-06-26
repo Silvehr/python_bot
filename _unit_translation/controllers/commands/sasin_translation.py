@@ -1,4 +1,4 @@
-from common.dsc import *
+from common.dsc.gateways import *
 
 @ACL.include
 @arc.slash_command('sas', 'discription')

@@ -3,7 +3,7 @@ import miru
 import arc
 import os
 
-MEINID = '574540305597202434'
+
 
 BOT = hikari.GatewayBot(
   token = os.environ["SASinBot"],

@@ -1,4 +1,4 @@
-from common.dsc import *
+from common.dsc.gateways import *
 
 @ACL.include
 @arc.slash_command('elazer', 'przelicza drony na elazery')
