@@ -73,18 +73,20 @@ async def cmd_edit_fabula_character(ctx: arc.GatewayContext, name: arc.Option[st
 @ACL.include
 @arc.slash_command('kp-fabula', 'pokazuje KP postaci')
 async def cmd_kp_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('imie postaci')] = None):
-  autid = ctx.author.id
+  autid = str(ctx.author.id)
   cname = name
 
   player : FabulaPlayer
 
   if cname is None:
     player = FABULA_PLAYER_DB.get_player(autid)
+    if player is None:
+      return await ctx.respond("Nie jesteś zarejestrowany/zarejestrowana w bazie danych")
   else:
     player = FABULA_PLAYER_DB.get_player_by_name(cname)
-    
-  if player is None:
-      return await ctx.respond("nie jesteś zarejestrowany w bazie danych lub nie posiadasz postaci w systemie Fabula Ultima")
+    if player is None:
+      return await ctx.respond(f"nie ma postaci o imieniu {name} w bazie postaci Fabula Ultima")
+
 
   await ctx.respond(
     tcr.discord.embed(
@@ -106,7 +108,8 @@ async def cmd_lvlup(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams
   
   if name:
     player = FABULA_PLAYER_DB.get_player_by_name(name)
-    return await ctx.respond(f"Nie ma postaci o imieniu **{name}** w bazie postaci Fabula Ultima")
+    if player is None:
+      return await ctx.respond(f"Nie ma postaci o imieniu **{name}** w bazie postaci Fabula Ultima")
   else:
     player = FABULA_PLAYER_DB.get_player(name)
     if player is None:
