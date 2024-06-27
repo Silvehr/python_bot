@@ -8,20 +8,20 @@ from _fate.models import *
 @ACL.include
 @arc.slash_command('kp-fate', 'karta postaci fate')
 async def cmd_kp_fate(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('Imie postaci')] = None):
-  autid = ctx.author.id
+  owner = ctx.author.id
   player : FatePlayer
   
   if name is None:
-    player = FATE_PLAYER_DB.get_player(autid)
-    
-    if player is None:
-      return await ctx.respond("Nie posiadasz postaci zarejestrowanej w bazie postaci FATE Core")
-  
-  else:
     player = FATE_PLAYER_DB.get_player_by_name(name)
     
     if player is None:
-      return await ctx.respond(f"Nie ma postaci zarejestrowanej w bazie postaci FATE Core o imieniu {name}")
+      return await ctx.respond(f"Nie ma gracza o imieniu {name} w bazie graczy **FATE Core**")
+  
+  else:
+    player = FATE_PLAYER_DB.get_player(owner)
+    
+    if player is None:
+      return await ctx.respond("Nie posiadasz postaci w bazie postaci **FATE Core**")
 
   await ctx.respond(
     tcr.discord.embed(
@@ -37,17 +37,17 @@ async def cmd_kp_fate(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPara
   )
   
 @ACL.include
-@arc.slash_command('del-fate-player', 'usuwa gracza fate')
-async def cmd_del_fate_player(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('imie postaci do usunięcia')]):
-  player = FATE_PLAYER_DB.get_pair_by_value_attrs({"name" : name})
+@arc.slash_command('del-fate-player', 'usuwa postać fate')
+async def cmd_del_fate_player(ctx: arc.GatewayContext):
+  player = FATE_PLAYER_DB.get_player(ctx.user.id)
   if player is None:
-    return await ctx.respond(f"gracz o nazwie {name} nie istniał")
+    return await ctx.respond("Nie posiadasz postaci w bazie postaci **FATE Core**")
   
-  del FATE_PLAYER_DB[player[0]]
-  return await ctx.respond(f'pomyślnie usunięto gracza {name}')
+  del FATE_PLAYER_DB[ctx.user.id]
+  return await ctx.respond(f"Pomyślnie usunięto {player.name} z bazy postaci **FATE Core**")
 
 @ACL.include
-@arc.slash_command('create-fate-player', 'dodaje gracza fate')
+@arc.slash_command('create-fate-player', 'dodaje postać fate')
 async def cmd_create_fate_player(
   ctx: arc.GatewayContext,
   name: arc.Option[str, arc.StrParams('imie postaci')],
@@ -67,4 +67,4 @@ async def cmd_create_fate_player(
     
   fate_player = FatePlayer(name, aspect, dict_skill)
   FATE_PLAYER_DB[str(user.id)] = fate_player
-  await ctx.respond(f'Pomyślnie stworzono gracza {name}')
+  await ctx.respond(f'Pomyślnie stworzono postać {name} w systemie **FATE Core**')

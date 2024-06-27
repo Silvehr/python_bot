@@ -172,7 +172,7 @@ async def cmd_show_cpk_campaign(ctx: arc.GatewayContext, name: arc.Option[str, a
   await ctx.respond(
     tcr.discord.embed(
       tcr.Null,
-      f'### Name: {campaign.name} \n system: {campaign.system.value} \n Universe: {campaign.universe} \n GMs: \n{'\n'.join(f'- <@{x}>' for x in campaign.gms)}\n\n Players: \n{'\n'.join(f'- <@{x}>' for x in campaign.players)}',
+      f'### Name: {campaign.name} \n system: {campaign.system.value} \n Universe: {campaign.universe} \n GMs: \n {'\n'.join(f'- <@{x}>' for x in campaign.gms)}\n\n Players: \n{'\n'.join(f'- <@{x}>' for x in campaign.players)}',
       color=0xF0BFFF,
       footer='uwu',
       author={

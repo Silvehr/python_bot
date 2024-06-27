@@ -5,4 +5,4 @@ class Player:
         self.name = name
         
     def __repr__(self) -> str:
-        return f'{self.character_name}'
+        return f'{self.name}'

@@ -10,7 +10,7 @@ async def cmd_dev(ctx: arc.GatewayContext, code: arc.Option[str, arc.StrParams('
   try:
     result = tcr.codeblock(tcr.fmt_iterable(eval(code), syntax_highlighting=True), langcode='ansi')
   except Exception as e:
-    result = f'{tcr.codeblock(tcr.extract_error(e), langcode='txt')}\n{tcr.codeblock(tcr.extract_traceback(e), langcode='py')}'
+    result = f'{tcr.codeblock(tcr.extract_error(e), langcode="txt" )}\n{tcr.codeblock(tcr.extract_traceback(e), langcode="py")}'
   await ctx.respond(result)
   
 @ACL.include
