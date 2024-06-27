@@ -17,7 +17,7 @@ class CampaignDB(ShelveDB):
     
     def get_campaign_by_attrs(self, attrs : dict[str, Any]) -> Campaign | None:
         
-        result = super().get_pair_by_attr_value(attrs)
+        result = super().get_value_by_attrs(attrs)
         
         if result is None:
             return None
@@ -25,7 +25,7 @@ class CampaignDB(ShelveDB):
             return result[1]
         
     def get_campaign(self, key) -> Campaign | None:
-        return super().try_get_value(key=key)
+        return super().get_value(key=key)
     
     def items(self) -> dict[Any, Campaign]:
         return self._shelf.items()

@@ -61,7 +61,7 @@ async def cmd_del_fabula_player(ctx: arc.GatewayContext, name: arc.Option[str, a
 async def cmd_edit_fabula_character(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('Imie postaci')],element: arc.Option[str, arc.StrParams('element do edycji', choices=list(FabulaPlayer.__annotations__))], value: arc.Option[str, arc.StrParams('nowa zawartosc')]):
   player : FabulaPlayer
   
-  player = FABULA_PLAYER_DB.get_pair_by_value_attr({"name" : name}) #(id właściciela : postać)
+  player = FABULA_PLAYER_DB.get_pair_by_value_attrs({"name" : name}) #(id właściciela : postać)
   
   if player is None:
     return await ctx.respond(f"Nie ma postaci o imieniu {name} w bazie postaci **Fabula Ultima**")

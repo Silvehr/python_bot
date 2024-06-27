@@ -1,0 +1,5 @@
+name: SASinBot
+run-name: ${{ github.actor }} is learning GitHub Actions
+
+env:
+  SASinBot: ${{secrets.SASINBOT}}

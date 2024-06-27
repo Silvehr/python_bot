@@ -39,7 +39,7 @@ async def cmd_kp_fate(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPara
 @ACL.include
 @arc.slash_command('del-fate-player', 'usuwa gracza fate')
 async def cmd_del_fate_player(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('imie postaci do usunięcia')]):
-  player = FATE_PLAYER_DB.get_pair_by_value_attr({"name" : name})
+  player = FATE_PLAYER_DB.get_pair_by_value_attrs({"name" : name})
   if player is None:
     return await ctx.respond(f"gracz o nazwie {name} nie istniał")
   

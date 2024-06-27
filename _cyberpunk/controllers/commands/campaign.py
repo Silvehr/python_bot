@@ -5,8 +5,8 @@ from ...local import *
 import tcrutils as tcr
 
 @ACL.include
-@arc.slash_command('add-player-to-cyberpunk-campaign', 'dodaje gracza do kampani w systemie cyberpunk')
-async def cmd_add_player_to_cyberpunk_campaign(
+@arc.slash_command('add-player-to-cpk-campaign', 'dodaje gracza do kampani w systemie Cyberpunk Red')
+async def cmd_add_player_to_cpk_campaign(
   ctx: arc.GatewayContext,
   name: arc.Option[str, arc.StrParams('nazwa kampani')],
   user: arc.Option[hikari.User, arc.UserParams('gracz do dodania')],
@@ -18,7 +18,7 @@ async def cmd_add_player_to_cyberpunk_campaign(
   campaign : Campaign = CYBERPUNK_CAMPAIGN_DB.get_campaign_by_name(name)
   
   if campaign is None:
-    await ctx.respond(f"Nie znaleziono kampani w systemie **Fabula Ultima** o nazwie **\"{name}\"**")
+    await ctx.respond(f"Nie znaleziono kampani w systemie **Cyberpunk Red** o nazwie **\"{name}\"**")
   
   if not (str(ctx.author.id) in campaign.gms):
     return await ctx.respond("Nie masz uprawnień aby modyfikować tej kampani palancie")
@@ -38,8 +38,8 @@ async def cmd_add_player_to_cyberpunk_campaign(
     await ctx.respond(f"gracz {user.global_name} był już w tej kampani")
     
 @ACL.include
-@arc.slash_command('del-player-from-cyberpunk-campaign', 'usuwa gracza z kampani w systemie Fabula Ultima')
-async def cmd_del_player_from_cyberpunk_campaign(  
+@arc.slash_command('del-player-from-cpk-campaign', 'usuwa gracza z kampani w systemie Cyberpunk Red')
+async def cmd_del_player_from_cpk_campaign(  
   ctx: arc.GatewayContext,
   name: arc.Option[str, arc.StrParams('nazwa kampani')],
   user: arc.Option[hikari.User, arc.UserParams('gracz do usunięcia')],
@@ -73,8 +73,8 @@ async def cmd_del_player_from_cyberpunk_campaign(
     await ctx.respond(f"gracza {user.global_name} nie było w tej kampani")
 
 @ACL.include
-@arc.slash_command('create-cyberpunk-campaign', 'tworzy kampanię w systemie cyberpunk')
-async def cmd_create_cyberpunk_campaign(  
+@arc.slash_command('create-cpk-campaign', 'tworzy kampanię w systemie cyberpunk')
+async def cmd_create_cpk_campaign(  
     ctx: arc.GatewayContext,
     channels: arc.Option[bool, arc.BoolParams('czy tworzyć kanały?')],
     name: arc.Option[str, arc.StrParams('Nazwa kampani')],
@@ -121,8 +121,8 @@ async def cmd_create_cyberpunk_campaign(
     await ctx.respond(msg)
     
 @ACL.include
-@arc.slash_command('del-cyberpunk-campaign', 'usuwa kampanie w systemie cyberpunk')
-async def cmd_del_cyberpunk_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
+@arc.slash_command('del-cpk-campaign', 'usuwa kampanie w systemie cyberpunk')
+async def cmd_del_cpk_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
   
   #
   # security check
@@ -161,8 +161,8 @@ async def cmd_del_cyberpunk_campaign(ctx: arc.GatewayContext, name: arc.Option[s
   await ctx.respond(msg)
 
 @ACL.include
-@arc.slash_command('show-cyberpunk-campaign', 'pokazuje info o kampani')
-async def cmd_show_cyberpunk_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
+@arc.slash_command('show-cpk-campaign', 'pokazuje info o kampani')
+async def cmd_show_cpk_campaign(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('nazwa kampani')]):
 
   campaign : Campaign = CYBERPUNK_CAMPAIGN_DB.get_campaign_by_name(name)
   

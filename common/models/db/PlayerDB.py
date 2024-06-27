@@ -13,10 +13,10 @@ class PlayerDB(ShelveDB):
         super().__setitem__(key, value)
         
     def get_player_by_name(self, name: str) -> Player | None:
-        return super().get_value_by_attr({"name": name})
+        return super().get_value_by_attrs({"name": name})
     
     def get_player_by_attrs(self, attrs : dict[str, Any]) -> Player | None:
-        return super().get_value_by_attr(attrs)
+        return super().get_value_by_attrs(attrs)
         
     def get_player(self, key) -> Player | None:
         return self._shelf.get(key)

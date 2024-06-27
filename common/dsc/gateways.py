@@ -3,8 +3,6 @@ import miru
 import arc
 import os
 
-
-
 BOT = hikari.GatewayBot(
   token = os.environ["SASinBot"],
   intents=hikari.Intents.ALL,

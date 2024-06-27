@@ -84,7 +84,7 @@ class ShelveDB:
     # else:
     #   returns None
     #
-    def get_pair_by_value_attr(self, attrs : dict[str, Any]) -> tuple | None:
+    def get_pair_by_value_attrs(self, attrs : dict[str, Any]) -> tuple | None:
         for pair in self._shelf.items():
             for attr in attrs.items():
                 if getattr(pair[1], attr[0]) != attr[1]:
@@ -93,7 +93,7 @@ class ShelveDB:
         
         return None
     
-    def get_value_by_attr(self, attrs : dict[str, Any]) -> Any | None:
+    def get_value_by_attrs(self, attrs : dict[str, Any]) -> Any | None:
         for value in self._shelf.values():
             for attr in attrs.items():
                 if getattr(value, attr[0]) != attr[1]:
