@@ -111,14 +111,17 @@ async def cmd_lvlup(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams
     if player is None:
       return await ctx.respond(f"Nie ma postaci o imieniu **{name}** w bazie postaci Fabula Ultima")
   else:
-    player = FABULA_PLAYER_DB.get_player(name)
+    player = FABULA_PLAYER_DB.get_player(str(ctx.user.id))
     if player is None:
       return await ctx.respond("Nie jesteś zarejestrowany/zarejestrowana w bazie graczy systemu Fabula Ultima")
   
   player.clevel += 1
   player.stats["HP"] += 1
   player.stats["MP"] += 1
-  FABULA_PLAYER_DB[str(name.id)] = player
+  if name:
+      FABULA_PLAYER_DB[str(name)]= player
+  else:
+      FABULA_PLAYER_DB[str(ctx.user.id)] = player
   await ctx.respond(f'LVL UP! {player.name} ma lvl: {player.clevel}')
   
 @ACL.include
