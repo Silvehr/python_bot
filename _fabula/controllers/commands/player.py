@@ -86,14 +86,14 @@ async def cmd_edit_fabula_character(ctx: arc.GatewayContext,element: arc.Option[
 async def cmd_kp_fabula(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams('imie postaci')] = None):
   player : FabulaPlayer
   
-  if name is None:
+  if name:
     player = FABULA_PLAYER_DB.get_player_by_name(name)
     
     if player is None:
       return await ctx.respond(f"Nie ma postaci o imieniu \"{name}\" w bazie postaci **Fabula Ultima**")
   
   else:
-    player = FABULA_PLAYER_DB.get_player(ctx.user.id)
+    player = FABULA_PLAYER_DB.get_player(str(ctx.user.id))
     
     if player is None:
       return await ctx.respond("Nie posiadasz postaci w bazie postaci **Fabula Ultima**")
@@ -118,7 +118,7 @@ async def cmd_lvlup(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrParams
   player : tuple[str,FabulaPlayer]
   
   if name:
-    pair = FABULA_PLAYER_DB.get_pair_by_value_attrs({"name" : name})[0]
+    pair = FABULA_PLAYER_DB.get_pair_by_value_attrs({"name" : name})
     if pair is None:
       return await ctx.respond(f"Nie ma postaci o imieniu \"{name}\" w bazie postaci **Fabula Ultima**")
     else:
