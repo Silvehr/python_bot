@@ -194,7 +194,7 @@ async def cmd_status_del(ctx: arc.GatewayContext,statusy: arc.Option[str, arc.St
       return await ctx.respond("Nie posiadasz postaci w bazie postaci **Fabula Ultima**")
 
   statval = FabulaStatusEffectType.STATUSY[statusy]
-  if(not player.has_status(statval)):
+  if(player.has_status(statval)):
     player.status -= statval
     
     managed_skills = get_corresponding_skills(statval)
@@ -202,6 +202,6 @@ async def cmd_status_del(ctx: arc.GatewayContext,statusy: arc.Option[str, arc.St
       player.skill[managed_skill] += get_corresponding_debuff(managed_skill,statval)
     FABULA_PLAYER_DB[owner] = player
   
-    await ctx.respond("Pomyślnie dodano status do postaci")
+    await ctx.respond("Pomyślnie usunięto status do postaci")
   else:
-    await ctx.respond(f"Postać posiadała już status **{statusy}**")
+    await ctx.respond(f"Postać nie posiadała statusu **{statusy}**")
