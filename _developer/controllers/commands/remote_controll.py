@@ -12,8 +12,3 @@ async def cmd_dev(ctx: arc.GatewayContext, code: arc.Option[str, arc.StrParams('
   except Exception as e:
     result = f'{tcr.codeblock(tcr.extract_error(e), langcode="txt" )}\n{tcr.codeblock(tcr.extract_traceback(e), langcode="py")}'
   await ctx.respond(result)
-  
-@ACL.include
-@arc.slash_command("ping", "Komenda do weryfikacji aktywności bota")
-async def cmd_ping(ctx: arc.GatewayContext):
-  return await ctx.respond("pong!")

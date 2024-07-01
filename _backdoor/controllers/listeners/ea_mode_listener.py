@@ -1,6 +1,6 @@
 import hikari.embeds
 from ...local import *
-from ...models.models import *
+from ...models import *
 
 from common.dsc.gateways import *
 @BOT.listen(hikari.GuildMessageCreateEvent)

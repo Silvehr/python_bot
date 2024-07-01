@@ -21,4 +21,4 @@ class DiscordDMLogger(Logger):
         await (await self._gateway.rest.create_dm_channel(self._targetPersonId)).send(f"> !WARNING! : {warning}")
     
     async def log_error(self, error : Exception | str):
-        await (await self._gateway.rest.create_dm_channel(self._targetPersonId)).send(f"> EXCEPTION  {tcrutils.codeblock(str(error), langcode="v")}")
+        await (await self._gateway.rest.create_dm_channel(self._targetPersonId)).send(f"EXCEPTION\n  {tcrutils.codeblock(str(error), langcode="v")}")

@@ -1,1 +1,2 @@
-from .commands import *
+from .commands.debugging import *
+from .commands.remote_controll import *
