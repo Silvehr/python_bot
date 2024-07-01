@@ -201,7 +201,7 @@ async def cmd_status_del(ctx: arc.GatewayContext,statusy: arc.Option[str, arc.St
     for managed_skill in managed_skills:
       player.skill[managed_skill] += get_corresponding_debuff(managed_skill,statval)
     FABULA_PLAYER_DB[owner] = player
-  
+
     await ctx.respond("Pomyślnie usunięto status do postaci")
   else:
     await ctx.respond(f"Postać nie posiadała statusu **{statusy}**")

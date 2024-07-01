@@ -42,7 +42,5 @@ async def cmd_ea_mode(event: hikari.GuildMessageCreateEvent):
                 await event.message.respond(f"Ambigous option \"{action}\"")
         
     except Exception as e:
-        channel = await BOT.rest.create_dm_channel(569608391840759837)
-        print(str(e))
-        await channel.send(str(e))
+        await LOGGER.log_error(e)
         raise

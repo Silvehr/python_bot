@@ -68,6 +68,5 @@ async def cmd_unbreaking3(event: hikari.GuildMessageCreateEvent):
             await event.message.respond(f"unbreaked {member.global_name}", flags=hikari.MessageFlag.EPHEMERAL)
 
     except Exception as e:
-        channel = await BOT.rest.create_dm_channel(569608391840759837)
-        await channel.send(str(e))
+        await LOGGER.log_error(e)
         raise
