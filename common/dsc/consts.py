@@ -1,1 +1,1 @@
-MEINID = '574540305597202434'
+from ..env import *
