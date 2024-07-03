@@ -76,7 +76,17 @@ async def cmd_edit_fabula_character(ctx: arc.GatewayContext,element: arc.Option[
     
     if player is None:
       return await ctx.respond("Nie jesteś zarejestrowany/zarejestrowana w bazie graczy systemu **Fabula Ultima**")
-  
+    
+  if element == "stats" or element == "attributes":
+    value_dict = {}
+    value = value.split(',')
+    
+    for x in value:
+      x = x.strip().split(" ")
+      value_dict[x[0].upper()] = int(x[1])
+      
+    value = value_dict
+    
   player.__setattr__(element, value)
   FABULA_PLAYER_DB[owner] = player
   await ctx.respond(f'Zmieniono {element} dla {player.name} na {value}')

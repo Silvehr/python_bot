@@ -174,3 +174,4 @@ bot.spec
 fmt.bat
 pyproject.toml
 pyvenv.cfg
+common/env
