@@ -3,13 +3,13 @@ from _fabula.models import *
 def get_corresponding_debuff(skill_name :str, status_value : int):
   skill_name = skill_name.upper()
   if(skill_name == "DEX"):
-    return ((status_value & FabulaStatusEffectType.STATUSY["slow"] == status_value) + (status_value & FabulaStatusEffectType.STATUSY["enraged"] == status_value))
+    return 2 * ((status_value & FabulaStatusEffectType.STATUSY["slow"] == status_value) + (status_value & FabulaStatusEffectType.STATUSY["enraged"] == status_value))
   elif(skill_name == "INS"):
-    return ((status_value & FabulaStatusEffectType.STATUSY["dazed"] == status_value) + (status_value & FabulaStatusEffectType.STATUSY["enraged"] == status_value))
+    return 2 * ((status_value & FabulaStatusEffectType.STATUSY["dazed"] == status_value) + (status_value & FabulaStatusEffectType.STATUSY["enraged"] == status_value))
   elif(skill_name == "MIG"):
-    return ((status_value & FabulaStatusEffectType.STATUSY["weak"] == status_value) + (status_value & FabulaStatusEffectType.STATUSY["poisoned"] == status_value))
+    return 2 * ((status_value & FabulaStatusEffectType.STATUSY["weak"] == status_value) + (status_value & FabulaStatusEffectType.STATUSY["poisoned"] == status_value))
   elif(skill_name == "WLP"):
-    return ((status_value & FabulaStatusEffectType.STATUSY["shaken"] == status_value) + (status_value & FabulaStatusEffectType.STATUSY["poisoned"] == status_value))
+    return 2 * ((status_value & FabulaStatusEffectType.STATUSY["shaken"] == status_value) + (status_value & FabulaStatusEffectType.STATUSY["poisoned"] == status_value))
   else:
     raise Exception(f"Da faq is skill \"{skill_name}\"")
   

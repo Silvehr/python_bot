@@ -18,7 +18,7 @@ async def cmd_kp_fate(ctx: arc.GatewayContext, name: arc.Option[str, arc.StrPara
       return await ctx.respond(f"Nie ma gracza o imieniu {name} w bazie graczy **FATE Core**")
   
   else:
-    player = FATE_PLAYER_DB.get_player(owner)
+    player = FATE_PLAYER_DB.get_player(str(owner))
     
     if player is None:
       return await ctx.respond("Nie posiadasz postaci w bazie postaci **FATE Core**")
