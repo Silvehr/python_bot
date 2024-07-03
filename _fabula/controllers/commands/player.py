@@ -76,7 +76,17 @@ async def cmd_edit_fabula_character(ctx: arc.GatewayContext,element: arc.Option[
     
     if player is None:
       return await ctx.respond("Nie jesteś zarejestrowany/zarejestrowana w bazie graczy systemu **Fabula Ultima**")
-  
+    
+  if element == "stats" or element == "attributes":
+    value_dict = {}
+    value = value.split(',')
+    
+    for x in value:
+      x = x.strip().split(" ")
+      value_dict[x[0].upper()] = int(x[1])
+      
+    value = value_dict
+    
   player.__setattr__(element, value)
   FABULA_PLAYER_DB[owner] = player
   await ctx.respond(f'Zmieniono {element} dla {player.name} na {value}')
@@ -194,7 +204,7 @@ async def cmd_status_del(ctx: arc.GatewayContext,statusy: arc.Option[str, arc.St
       return await ctx.respond("Nie posiadasz postaci w bazie postaci **Fabula Ultima**")
 
   statval = FabulaStatusEffectType.STATUSY[statusy]
-  if(not player.has_status(statval)):
+  if(player.has_status(statval)):
     player.status -= statval
     
     managed_skills = get_corresponding_skills(statval)
@@ -202,6 +212,6 @@ async def cmd_status_del(ctx: arc.GatewayContext,statusy: arc.Option[str, arc.St
       player.skill[managed_skill] += get_corresponding_debuff(managed_skill,statval)
     FABULA_PLAYER_DB[owner] = player
   
-    await ctx.respond("Pomyślnie dodano status do postaci")
+    await ctx.respond("Pomyślnie usunięto status do postaci")
   else:
-    await ctx.respond(f"Postać posiadała już status **{statusy}**")
+    await ctx.respond(f"Postać nie posiadała statusu **{statusy}**")
