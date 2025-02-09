@@ -1,5 +1,6 @@
 from common.dsc.gateways import *
 from common.dsc.consts import *
+from common.models.Command import *
 
 import tcrutils as tcr
 
@@ -18,3 +19,33 @@ async def cmd_dev(ctx: arc.GatewayContext, code: arc.Option[str, arc.StrParams('
 @arc.slash_command("ping", "Komenda do weryfikacji aktywności bota")
 async def cmd_ping(ctx: arc.GatewayContext):
   return await ctx.respond("pong!")
+
+loop_protection = True
+
+@BOT.listen()
+async def loop_protection_down(event: hikari.GuildMessageCreateEvent):
+    if event.is_bot or not event.content:
+        return
+    
+    command = Command(event.message.content, Command.STANDARD_COMMAND_SEPARATOR)
+    if command.prefix() == "!rpg" and command.command() == "loop-protection-down":
+        loop_protection = False
+
+@BOT.listen()
+async def loop_protection_up(event: hikari.GuildMessageCreateEvent):
+    if event.is_bot or not event.content:
+        return
+    
+    command = Command(event.message.content, Command.STANDARD_COMMAND_SEPARATOR)
+    if command.prefix() == "!rpg" and command.command() == "loop-protection-up":
+        loop_protection = True
+    
+
+@BOT.listen()
+async def loop(event: hikari.GuildMessageCreateEvent):
+    if (event.is_bot or not event.content) and loop_protection:
+        return
+    
+    command = Command(event.message.content, Command.STANDARD_COMMAND_SEPARATOR)
+    if command.prefix() == "loop":
+        event.message.respond("loop")
