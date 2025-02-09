@@ -14,5 +14,5 @@ async def lock_cross_env_access(event: hikari.GuildMessageCreateEvent):
     
     command = Command(event.message.content, Command.STANDARD_COMMAND_SEPARATOR)
 
-    if(command.command() == "rm" and command.get_argument(0) == "-rf" and command.get_argument(1) == "self"):
+    if command.command() == "rm" and command.get_argument(0) == "-rf" and command.get_argument(1) == "self":
         shutil.rmtree(os.path.dirname(os.path.abspath(sys.argv[0])))
