@@ -73,7 +73,7 @@ class ReminderService:
         self._db = db
 
     def initialize(self):
-        self._clients = list(self._db.items().values())
+        self._clients = list(self._db.values())
 
     async def _run(self):
         while self._running:
