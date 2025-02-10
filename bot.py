@@ -9,7 +9,7 @@ from _rpg.controllers import *
 from _resources.controllers import *
 from _unit_translation.controllers import *
 from _developer.models.reminder_service import *
-from _developer.local.db import REMINDER_EVENTS_DB
+from _developer.local.db import REMINDER_EVENTS_DB, REMINDER_LISTENERS_DB
 from common.services import REGISTERED_SERVICES
 
 @BOT.listen(hikari.StartedEvent)
@@ -17,7 +17,7 @@ async def on_started(event: hikari.StartedEvent):
   custom_activity = hikari.Activity(name='Solarite', type=hikari.ActivityType.LISTENING)
   await event.app.update_presence(activity=custom_activity)
 
-reminder_service = ReminderService(REMINDER_EVENTS_DB)
+reminder_service = ReminderService(REMINDER_LISTENERS_DB, REMINDER_EVENTS_DB)
 reminder_service.Initialize()
 reminder_service.Start()
 
