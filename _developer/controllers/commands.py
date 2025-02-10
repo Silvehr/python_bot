@@ -36,11 +36,11 @@ async def set_reminder(event: hikari.DMMessageCreateEvent):
         if command.prefix() == "rpg":
             if command.command() == "set-reminder":
                 user_id = command.get_argument(0)
-                start = command.get_argument(2)
-                interval = command.get_argument(3)
+                start = command.get_argument(1)
+                interval = command.get_argument(2)
+                message= command.get_argument(3)
 
-                service_user = ReminderClient(user_id, parse_datetime(start), parse_timedelta(interval),
-                                              "Wyślij mi swój opis! Przypominam Ci o tym już {c} raz!")
+                service_user = ReminderClient(user_id, parse_datetime(start), parse_timedelta(interval),message)
                 service: ReminderService = REGISTERED_SERVICES["ReminderService"]
                 await service.add_client(service_user)
             elif command.command() == "rm-reminder":
