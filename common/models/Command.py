@@ -18,8 +18,10 @@ class Command:
             if c==' ' and len(c_arg) > 0:
                 self._splitted.append(c_arg)
             elif c == '"':
-                end = source.find(' ',i+1)
+                end = source.find('"',i+1)
                 self._splitted.append(source[(i+1):(end)])
+                if end == -1:
+                    rasie SyntaxError()
                 i = end
             else:
                 c_arg+= c
