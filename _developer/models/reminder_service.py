@@ -69,33 +69,56 @@ class ReminderService:
     _db : ShelveDB
     _task: asyncio.Task
 
-    def __init__(self, db : ShelveDB):
+    def __init__(self, db : ShelveDB, debug_mode: bool = False):
         self._db = db
+        self.debug_mode = debug_mode
 
     def initialize(self):
         self._clients = list(self._db.values())
 
     async def _run(self):
-        while self._running:
-            now = datetime.now()
-            for client in self._clients:
-                if now - client.last_run >= client.interval:
-                    await client.remind(self._db)
+        if self.debug_mode:
+            while self._running:
+                print("Checking overdue reminders...")
+                now = datetime.now()
+                any_user_reminded = False
+                for client in self._clients:
+                    if now - client.last_run >= client.interval:
+                        await client.remind(self._db)
+                        print(f"Client {client.client_id} reminded!") 
+                        any_user_reminded = True
 
-            await asyncio.sleep(600)
+                if not any_user_reminded:
+                    print("No user was reminded :(")
+    
+                await asyncio.sleep(600)
+        else:
+            while self._running:
+                now = datetime.now()
+                for client in self._clients:
+                    if now - client.last_run >= client.interval:
+                        await client.remind(self._db)
+                await asyncio.sleep(600)
 
     def remove_client(self, client_id):
         self._db.__delitem__(client_id)
         for i in range(len(self._clients)):
             if self._clients[i].client_id == client_id:
+                if self.debug_mode:
+                    print(f"User {client_id} removed succesfully")
                 self._clients.pop(i)
-                break
+                return
+
+        if self.debug_mode:
+            print(f"User {client_id} not found")
 
     async def add_client(self, client: ReminderClient):
         for i in range(len(self._clients)):
             if self._clients[i].client_id == client.client_id:
+                if self.debug_mode:
+                    print("User was already present at service database")
                 return
-
+        print(f"User {client.client_id} added")
         self._clients.append(client)
         await client.initialize_reminder_for_user()
         self._db[client.client_id] = client
