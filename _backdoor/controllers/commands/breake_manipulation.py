@@ -15,9 +15,9 @@ async def cmd_send_to_a_break(event: hikari.GuildMessageCreateEvent):
         command = Command(event.message.content, Command.STANDARD_COMMAND_SEPARATOR)
         
         if command.prefix() == "!rpg" and command.command() == 'send-to-a-break':
-            user : str = command.get_argument(0)
-            guild : str = command.get_argument(1)
-            time : str = command.get_argument(2) #yyyy:mm:dd:hh:mm:ss
+            user : str = command[0]
+            guild : str = command[1]
+            time : str = command[2] #yyyy:mm:dd:hh:mm:ss
             member : hikari.Member
 
             if len(guild) == 0:
@@ -53,8 +53,8 @@ async def cmd_unbreaking3(event: hikari.GuildMessageCreateEvent):
         command = Command(event.message.content, Command.STANDARD_COMMAND_SEPARATOR)
         
         if command.prefix() == "!rpg" and command.command() == 'take-back-from-break':
-            user = command.get_argument(0)
-            guild = command.get_argument(1)
+            user = command[0]
+            guild = command[1]
 
             if len(guild) == 0:
                 guild = SERWER_ANTKA

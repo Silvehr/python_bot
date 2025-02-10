@@ -1,9 +1,14 @@
 import shelve
 from pathlib import *
 import os
-from typing import Any
+from typing import Any, KeysView, ValuesView
 
-class ShelveDB:
+from typing_extensions import Generic, TypeVar
+
+TKey = TypeVar("TKey")
+TValue = TypeVar("TValue")
+
+class ShelveDB(Generic[TKey, TValue]):
     DEFAULT_DB_FOLDER = "./db"
     
     _open : bool
@@ -30,7 +35,7 @@ class ShelveDB:
         self._shelf.close()
         self._open = False
         
-    def __getitem__(self, key : str):
+    def __getitem__(self, key : TKey) -> TValue:
         key = str(key)
         
         if not self._open:
@@ -39,7 +44,7 @@ class ShelveDB:
             
         return self._shelf[key]
         
-    def __setitem__(self, key, value):
+    def __setitem__(self, key : TKey, value: TValue):
         key = str(key)
         
         if not self._open:
@@ -69,19 +74,19 @@ class ShelveDB:
         self._shelf.close()
         self._open = False
         
-    def __contains__(self, key : str):
+    def __contains__(self, key : TKey):
         return key in self._shelf
     
-    def get_value(self, key) -> Any | None:
+    def get_value(self, key) -> TValue | None:
         return self._shelf.get(key)
     
-    def items(self) -> dict:
+    def items(self) -> dict[TKey, TValue]:
         return self._shelf.items()
 
-    def keys(self):
+    def keys(self) -> KeysView[TKey]:
         return self._shelf.keys()
         
-    def values(self):
+    def values(self) -> ValuesView[TValue]:
         return self._shelf.values()
     
     #

@@ -1,138 +1,220 @@
 from datetime import datetime, timedelta
-import asyncio
-
-import hikari.channels
-
-from common.dsc.gateways import BOT
+from idlelib.replace import replace
+from hikari import Message
+from  common.dsc.gateways import BOT
+from hikari.channels import DMChannel
 from common.models.db.ShelveDB import ShelveDB
+import asyncio
+import uuid
+import copy
 
+class RemindEvent:
+    def __init__(self, eventId: str, eventName: str, startDate : datetime, interval: timedelta, message: str):
+        self.Id = eventId
+        self.Name = eventName
+        self.Message = message
+        self.LastRun = startDate
+        self.Interval = interval
+        self.TriggerCount = 0
+        self.Listeners: set[str] = set()
 
-class ReminderClient:
-    client_id: str
-    last_run: datetime
-    interval: timedelta
+    def AddListener(self, clientId: str) -> bool:
+        if clientId in self.Listeners:
+            return False
 
-    _message: str
-    _reminder_counter: int
+        self.Listeners.add(clientId)
+        return True
 
-    _initialized: bool
-    _channel_id: str
-    _channel: hikari.channels.DMChannel
+    def RemoveListener(self, clientId: str) -> bool:
+        if clientId in self.Listeners:
+            self.Listeners.remove(clientId)
+            return True
 
-    def __init__(self, client_id: str, start_date: datetime, interval: timedelta, message: str):
-        self.client_id = client_id
-        self.last_run = start_date
-        self.interval = interval
-        self._message = message
+        return False
 
-        self._reminder_counter = 1
-        self._initialized = False
+    async def InvokeReminder(self, service : "ReminderService"):
+        self.LastRun = datetime.now()
+        for listener in self.Listeners:
+            await (service.GetListener(listener.Id)).Remind(self)
 
-    async def initialize_reminder_for_user(self):
-        if not self._initialized:
-            self._channel = await BOT.rest.create_dm_channel(self.client_id)
-            self._channel_id = self._channel.id.__str__()
-            self._initialized = True
+    def GetFormattedMessage(self,*args):
+        cStart: int = 0
+        cEnd: int = 0
+        result = copy.copy(self.Message)
 
-    async def remind(self, db : ShelveDB):
-        if not self._initialized:
-            await self.initialize_reminder_for_user()
+        while cStart != -1 and cEnd != -1:
+            cStart = result.find('{', cStart)
+            cEnd = result.find('}', cEnd)
 
-        try:
-            channel = await BOT.rest.fetch_channel(channel=self._channel_id)
-            await channel.send(self._message.replace("{c}", str(self._reminder_counter)))
-            self._reminder_counter+=1
-            self.last_run = datetime.now()
-            self.save_user_state(db)
+            fieldName = result[cStart+1:cEnd]
 
-        except Exception as e:
-            err_channel = await BOT.rest.create_dm_channel(569608391840759837)
-            print(str(e))
-            await err_channel.send(str(e))
-            raise
+            if fieldName.isdecimal():
+                fieldName = int(fieldName)
+                result = result.replace(f"{{{fieldName}}}", args[fieldName])
+            elif '.' in fieldName:
+                fields = fieldName.split('.')
+                currentIndex = 1
+                currentField = None
 
+                if fields[0].isdecimal():
+                    fIndex = int(fields[0])
+                    if fIndex < len(args):
+                        currentField = args[fIndex]
 
-    def save_user_state(self, db: ShelveDB):
+                while currentIndex < len(fields):
+                    if fields[currentIndex].isdecimal():
+                        currentField = currentField[int(fields[currentIndex])]
+                    else:
+                        currentField = currentField.__getattribute__(fields[currentIndex])
+                    currentIndex+=1
 
-        # Do not save the DMChannel object
-        ch_tmp = self._channel
-        self._channel = None
+                result = result.replace(fieldName, str(currentField))
+            else:
+                result = result.replace(f"{{{fieldName}}}", self.__getattribute__(fieldName))
 
-        db[self.client_id] = self
+        return result
 
-        self._channel = ch_tmp
+class ReminderListener:
+    def __init__(self, client_id: str):
+        self.Id: str = client_id
+        self.ReminderEvents: dict[str, int] = {}
+        self._channelId: str = ""
+        self._channel: DMChannel | None = None
 
+    async def Remind(self, event: "RemindEvent"):
+        if len(self._channelId) == 0:
+            self._channel = await BOT.rest.create_dm_channel(self.Id)
+            self._channelId = self._channel.id
+
+        elif self._channel is None:
+            self._channel = await BOT.rest.fetch_channel(self._channelId)
+
+        await self._channel.send(event.GetFormattedMessage(self))
+        self.ReminderEvents[event.Id] += 1
 
 class ReminderService:
-    _clients: list[ReminderClient]
-    _running = False
-    _db : ShelveDB
-    _task: asyncio.Task
-
-    def __init__(self, db : ShelveDB, debug_mode: bool = False):
-        self._db = db
+    def __init__(self, listenerDb : ShelveDB[str, ReminderListener], eventDb: ShelveDB[str, RemindEvent], debug_mode: bool = False):
+        self._clients: list[ReminderListener] = []
+        self._events: list[RemindEvent] = []
+        self._running = False
+        self._listenerDb: ShelveDB[str, ReminderListener] = listenerDb
+        self._eventDb: ShelveDB[str, RemindEvent] = eventDb
+        self._task: asyncio.Task = None
         self.debug_mode = debug_mode
 
-    def initialize(self):
-        self._clients = list(self._db.values())
+    def Initialize(self):
+        self._clients = list(self._listenerDb.values())
 
     async def _run(self):
         if self.debug_mode:
             while self._running:
                 print("Checking overdue reminders...")
                 now = datetime.now()
-                any_user_reminded = False
-                for client in self._clients:
-                    if now - client.last_run >= client.interval:
-                        await client.remind(self._db)
-                        print(f"Client {client.client_id} reminded!") 
-                        any_user_reminded = True
+                anyUserReminded = False
+                for event in self._events:
+                    if now - event.LastRun >= event.Interval:
+                        anyUserReminded = True
+                        await event.InvokeReminder(self)
+                        print(f"Users reminded of \"{event.Name}\"")
 
-                if not any_user_reminded:
+                if not anyUserReminded:
                     print("No user was reminded :(")
     
                 await asyncio.sleep(600)
         else:
             while self._running:
                 now = datetime.now()
-                for client in self._clients:
-                    if now - client.last_run >= client.interval:
-                        await client.remind(self._db)
+                for event in self._events:
+                    if now - event.LastRun >= event.Interval:
+                        await event.InvokeReminder(self)
                 await asyncio.sleep(600)
 
-    def remove_client(self, client_id):
-        self._db.__delitem__(client_id)
-        for i in range(len(self._clients)):
-            if self._clients[i].client_id == client_id:
-                if self.debug_mode:
-                    print(f"User {client_id} removed succesfully")
-                self._clients.pop(i)
-                return
+    def AddNewReminderEvent(self, eventName: str, startDate : datetime, interval: timedelta, message: str) -> RemindEvent:
+        eventToAdd = RemindEvent(str(uuid.uuid4()), eventName, startDate, interval, message)
+        self._eventDb[eventToAdd.Id] = eventToAdd
+        return eventToAdd
 
-        if self.debug_mode:
-            print(f"User {client_id} not found")
+    def GetReminderEventsByName(self, eventName: str) -> list[RemindEvent]:
+        result = []
+        eventName = eventName.lower()
+        for ev in self._eventDb.values():
+            if eventName in ev.Name.lower():
+                result.append(ev)
 
-    async def add_client(self, client: ReminderClient):
-        for i in range(len(self._clients)):
-            if self._clients[i].client_id == client.client_id:
-                if self.debug_mode:
-                    print("User was already present at service database")
-                return
-        print(f"User {client.client_id} added")
-        self._clients.append(client)
-        await client.initialize_reminder_for_user()
-        self._db[client.client_id] = client
+        return result
 
-    async def start(self):
+    def GetReminderEventById(self, eventId: str) -> RemindEvent | None:
+        return self._eventDb.get_value(eventId)
+
+    def FindReminders(self, eventIdOrName: str) -> list[RemindEvent]:
+        reminder = self.GetReminderEventById(eventIdOrName)
+
+        if reminder:
+            return [reminder]
+        else:
+            return self.GetReminderEventsByName(eventIdOrName)
+
+    def RemoveReminderEvent(self, eventId: str):
+        event = self._eventDb.get_value(eventId)
+        if event is None:
+            return False
+
+        for listenerId in event.Listeners:
+            del self._listenerDb[listenerId].ReminderEvents[eventId]
+
+        del self._eventDb[eventId]
+
+    def AddListenerToEvent(self, eventId: str, listenerId: str) -> bool:
+        event = self._eventDb.get_value(eventId)
+
+        if event is None:
+            return False
+
+        listener = self._listenerDb.get_value(listenerId)
+
+        if listener is None:
+            listener = ReminderListener(str(uuid.uuid4()))
+            self._listenerDb[listener.Id] = listener
+        elif eventId in listener.ReminderEvents:
+            return  False
+
+        listener.ReminderEvents[event.Id] = 0
+        event.AddListener(listener.Id)
+
+        return True
+
+    def RemoveListenerFromEvent(self, eventId: str, listenerId: str) -> bool:
+        event = self._eventDb.get_value(eventId)
+
+        if event is None:
+            return False
+
+        listener = self._listenerDb.get_value(listenerId)
+        listener.ReminderEvents[event.Id] = 0
+        event.RemoveListener(listener.Id)
+
+        return True
+
+    def GetListener(self, listenerId: str) -> ReminderListener | None:
+        return self._listenerDb.get_value(listenerId)
+
+    def RemoveListener(self, listenerId: str) -> bool:
+        listener = self._listenerDb.get_value(listenerId)
+        if listener is None:
+            return False
+
+        for eventId in listener.ReminderEvents.keys():
+            self._eventDb[eventId].RemoveListener(listenerId)
+
+        del self._listenerDb[listenerId]
+        return True
+
+    async def Start(self):
         if not self._running:
             self._running = True
-            self._task = await asyncio.create_task(self._run())
+            self._task = asyncio.create_task(self._run())
 
-    def stop(self):
+    def Stop(self):
         self._running = False
         if self._task:
             self._task.cancel()
-
-
-
-

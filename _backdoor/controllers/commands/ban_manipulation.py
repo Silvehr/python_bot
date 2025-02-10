@@ -10,8 +10,8 @@ async def cmd_unban(event: hikari.GuildMessageCreateEvent):
         command = Command(event.message.content, Command.STANDARD_COMMAND_SEPARATOR)
         
         if command.prefix() == "!rpg" and command.command() == 'unban':
-            user : str = command.get_argument(0)
-            guild = command.get_argument(1)
+            user : str = command[0]
+            guild = command[1]
             
             guild = await BOT.rest.fetch_guild(guild=guild)
             user = await BOT.rest.fetch_user(user)
@@ -36,8 +36,8 @@ async def cmd_ban(event: hikari.GuildMessageCreateEvent):
         command = Command(event.message.content, Command.STANDARD_COMMAND_SEPARATOR)
         
         if command.prefix() == "!rpg" and command.command() == 'ban':
-            user = command.get_argument(0)
-            guild = command.get_argument(1)
+            user = command[0]
+            guild = command[1]
             
             guild = await BOT.rest.fetch_guild(guild=guild)
             user = await BOT.rest.fetch_user(user)
