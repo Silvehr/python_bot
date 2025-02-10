@@ -21,7 +21,7 @@ class Command:
                 end = source.find('"',i+1)
                 self._splitted.append(source[(i+1):(end)])
                 if end == -1:
-                    rasie SyntaxError()
+                    raise SyntaxError()
                 i = end
             else:
                 c_arg+= c

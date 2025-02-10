@@ -82,7 +82,7 @@ class ReminderService:
                 if now - client.last_run >= client.interval:
                     await client.remind(self._db)
 
-            await asyncio.sleep(600)
+            await asyncio.sleep(30)
 
     def remove_client(self, client_id):
         self._db.__delitem__(client_id)
@@ -100,10 +100,10 @@ class ReminderService:
         await client.initialize_reminder_for_user()
         self._db[client.client_id] = client
 
-    def start(self):
+    async def start(self):
         if not self._running:
             self._running = True
-            self._task = asyncio.create_task(self._run())
+            self._task = await asyncio.create_task(self._run())
 
     def stop(self):
         self._running = False
