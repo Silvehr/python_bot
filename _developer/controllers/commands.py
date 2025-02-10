@@ -55,10 +55,17 @@ async def set_reminder(event: hikari.DMMessageCreateEvent):
                 service_user = ReminderClient(user_id, datetime(start_d.year,start_d.month,start_d.day,start_t.hour,start_t.minute,start_t.second), parse_timedelta(interval),message)
                 service: ReminderService = REGISTERED_SERVICES["ReminderService"]
                 await service.add_client(service_user)
+
+                user = await BOT.rest.fetch_user(user_id)
+                event.message.respond(f"Succesfully created reminder for **{user.global_name}**") 
             elif command.command() == "rm-reminder":
                 user_id = command.get_argument(0)
                 service: ReminderService = REGISTERED_SERVICES["ReminderService"]
                 service.remove_client(user_id)
+
+                
+                user = await BOT.rest.fetch_user(user_id)
+                event.message.respond(f"Succesfully removed reminder for user **{user.global_name}**")
 
     except:
         channel = await BOT.rest.create_dm_channel(MEINID)
