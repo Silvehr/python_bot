@@ -9,7 +9,25 @@ class Command:
         self._source = source
         if len(separator) > 0:
             self._separator = separator
-        self._splitted = source.split(self._separator)
+        self._splitted=[]
+        c_arg = ""
+        i = 0
+
+        while i < len(source):
+            c = source[i]
+            if c==' ' and len(c_arg) > 0:
+                self._splitted.append(c_arg)
+            elif c == '"':
+                end = source.find(' ',i+1)
+                self._splitted.append(source[(i+1):(end)])
+                i = end
+            else:
+                c_arg+= c
+            i+=1
+
+        if len(c_arg) > 0:
+            self._splitted.append(c_arg)
+                
     
     def prefix(self):
         return self._splitted[0]
