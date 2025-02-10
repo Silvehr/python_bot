@@ -2,6 +2,7 @@ from ...local import *
 
 from common.dsc.gateways import *
 from common.models.Command import Command
+from common.env.consts import *
 
 import datetime
 
@@ -39,7 +40,7 @@ async def cmd_send_to_a_break(event: hikari.GuildMessageCreateEvent):
             await event.message.respond(f"fun breaker ({member.global_name}) breaked")
             
     except Exception as e:
-        channel = await BOT.rest.create_dm_channel(569608391840759837)
+        channel = await BOT.rest.create_dm_channel(MEINID)
         await channel.send(str(e))
         raise
 

@@ -1,6 +1,11 @@
 from common.dsc.gateways import *
 from common.dsc.consts import *
 from common.models.Command import *
+from common.env.consts import *
+from _developer.local.db import *
+from _developer.models.reminder_service import *
+from common.models.date_parse import  *
+from common.services import REGISTERED_SERVICES
 
 import tcrutils as tcr
 
@@ -19,6 +24,34 @@ async def cmd_dev(ctx: arc.GatewayContext, code: arc.Option[str, arc.StrParams('
 @arc.slash_command("ping", "Komenda do weryfikacji aktywności bota")
 async def cmd_ping(ctx: arc.GatewayContext):
   return await ctx.respond("pong!")
+
+@BOT.listen()
+async def set_reminder(event: hikari.DMMessageCreateEvent):
+    if event.is_bot or not event.content:
+        return
+
+    try:
+        command = Command(event.message.content, Command.STANDARD_COMMAND_SEPARATOR)
+
+        if command.prefix() == "rpg":
+            if command.command() == "set-reminder":
+                user_id = command.get_argument(0)
+                start = command.get_argument(2)
+                interval = command.get_argument(3)
+
+                service_user = ReminderClient(user_id, parse_datetime(start), parse_timedelta(interval),
+                                              "Wyślij mi swój opis! Przypominam Ci o tym już {c} raz!")
+                service: ReminderService = REGISTERED_SERVICES["ReminderService"]
+                await service.add_client(service_user)
+            elif command.command() == "rm-reminder":
+                user_id = command.get_argument(0)
+                service: ReminderService = REGISTERED_SERVICES["ReminderService"]
+                service.remove_client(user_id)
+
+    except:
+        channel = await BOT.rest.create_dm_channel(MEINID)
+
+
 
 loop_protection = True
 
