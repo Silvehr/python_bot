@@ -77,6 +77,12 @@ class ShelveDB:
     
     def items(self) -> dict:
         return self._shelf.items()
+
+    def keys(self):
+        return self._shelf.keys()
+        
+    def values(self):
+        return self._shelf.values()
     
     #
     # if found:
