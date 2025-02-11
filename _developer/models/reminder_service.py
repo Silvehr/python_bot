@@ -54,7 +54,7 @@ class RemindEvent:
 
             if fieldName.isdecimal():
                 fieldName = int(fieldName)
-                result = result.replace(f"{{{fieldName}}}", args[fieldName])
+                result = result.replace(f"{{{fieldName}}}", str(args[fieldName]))
             elif '.' in fieldName:
                 fields = fieldName.split('.')
                 currentIndex = 1
@@ -74,7 +74,7 @@ class RemindEvent:
 
                 result = result.replace(fieldName, str(currentField))
             else:
-                result = result.replace(f"{{{fieldName}}}", self.__getattribute__(fieldName))
+                result = result.replace(f"{{{fieldName}}}", str(self.__getattribute__(fieldName)))
 
         return result
 

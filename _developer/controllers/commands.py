@@ -118,8 +118,8 @@ async def ReminderCommands(event: hikari.DMMessageCreateEvent):
                     reminders = reminders[0]
                 elif len(reminders) > 1:
                     response = "#Which one?"
-                    for reminders in reminders:
-                        response += f"    Name: {reminders.Name}\n    Id: {reminders.Id}\n    Message: {reminders.Message}"
+                    for reminder in reminders:
+                        response += f"    Name: {reminder.Name}\n    Id: {reminder.Id}\n    Message: {reminder.Message}"
                     return
 
                 reminderName = reminders.Name
