@@ -16,7 +16,7 @@ class RemindEvent:
         self.Message = message
         self.LastRun = startDate
         self.Interval = interval
-        self.TriggerCount = 0
+        self.TriggerCount = 1
         self.Listeners: list[str] = []
 
     def AddListener(self, clientId: str) -> bool:
@@ -73,7 +73,7 @@ class RemindEvent:
                         currentField = currentField.__getattribute__(fields[currentIndex])
                     currentIndex+=1
 
-                result = result.replace(fieldName, str(currentField))
+                result = result.replace(f"{{{fieldName}}}", str(currentField))
             else:
                 result = result.replace(f"{{{fieldName}}}", str(self.__getattribute__(fieldName)))
 
