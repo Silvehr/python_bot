@@ -7,6 +7,7 @@ from common.models.db.ShelveDB import ShelveDB
 import asyncio
 import uuid
 import copy
+import threading
 
 class RemindEvent:
     def __init__(self, eventId: str, eventName: str, startDate : datetime, interval: timedelta, message: str):
@@ -16,13 +17,13 @@ class RemindEvent:
         self.LastRun = startDate
         self.Interval = interval
         self.TriggerCount = 0
-        self.Listeners: set[str] = set()
+        self.Listeners: list[str] = []
 
     def AddListener(self, clientId: str) -> bool:
         if clientId in self.Listeners:
             return False
 
-        self.Listeners.add(clientId)
+        self.Listeners.append(clientId)
         return True
 
     def RemoveListener(self, clientId: str) -> bool:
@@ -35,7 +36,7 @@ class RemindEvent:
     async def InvokeReminder(self, service : "ReminderService"):
         self.LastRun = datetime.now()
         for listener in self.Listeners:
-            await (service.GetListener(listener.Id)).Remind(self)
+            await (service.GetListener(listener)).Remind(self)
 
     def GetFormattedMessage(self,*args):
         cStart: int = 0
@@ -45,6 +46,9 @@ class RemindEvent:
         while cStart != -1 and cEnd != -1:
             cStart = result.find('{', cStart)
             cEnd = result.find('}', cEnd)
+
+            if cEnd == -1:
+                break
 
             fieldName = result[cStart+1:cEnd]
 
@@ -94,24 +98,26 @@ class ReminderListener:
 
 class ReminderService:
     def __init__(self, listenerDb : ShelveDB[str, ReminderListener], eventDb: ShelveDB[str, RemindEvent], debug_mode: bool = False):
-        self._clients: list[ReminderListener] = []
-        self._events: list[RemindEvent] = []
+        self._listeners: dict[str,ReminderListener] = {}
+        self._events: dict[str,RemindEvent] = {}
         self._running = False
         self._listenerDb: ShelveDB[str, ReminderListener] = listenerDb
         self._eventDb: ShelveDB[str, RemindEvent] = eventDb
-        self._task: asyncio.Task = None
         self.debug_mode = debug_mode
+        self._task : asyncio.Task = None
 
     def Initialize(self):
-        self._clients = list(self._listenerDb.values())
+        self._listeners = dict(self._listenerDb.items())
+        self._events = dict(self._eventDb.items())
 
     async def _run(self):
+        print("[Started]")
         if self.debug_mode:
             while self._running:
                 print("Checking overdue reminders...")
                 now = datetime.now()
                 anyUserReminded = False
-                for event in self._events:
+                for event in self._events.values():
                     if now - event.LastRun >= event.Interval:
                         anyUserReminded = True
                         await event.InvokeReminder(self)
@@ -119,19 +125,21 @@ class ReminderService:
 
                 if not anyUserReminded:
                     print("No user was reminded :(")
-    
-                await asyncio.sleep(600)
+
+                await asyncio.sleep(20)
         else:
             while self._running:
                 now = datetime.now()
-                for event in self._events:
+                for event in self._events.values():
                     if now - event.LastRun >= event.Interval:
                         await event.InvokeReminder(self)
-                await asyncio.sleep(600)
+                await asyncio.sleep(20)
+        print("[Stopped]")
 
     def AddNewReminderEvent(self, eventName: str, startDate : datetime, interval: timedelta, message: str) -> RemindEvent:
         eventToAdd = RemindEvent(str(uuid.uuid4()), eventName, startDate, interval, message)
         self._eventDb[eventToAdd.Id] = eventToAdd
+        self._events[eventToAdd.Id] = eventToAdd
         return eventToAdd
 
     def GetReminderEventsByName(self, eventName: str) -> list[RemindEvent]:
@@ -162,36 +170,49 @@ class ReminderService:
         for listenerId in event.Listeners:
             del self._listenerDb[listenerId].ReminderEvents[eventId]
 
-        del self._eventDb[eventId]
+        self.RemoveEventRecord(event)
 
     def AddListenerToEvent(self, eventId: str, listenerId: str) -> bool:
-        event = self._eventDb.get_value(eventId)
+        event = self._events.get(eventId)
 
         if event is None:
             return False
 
-        listener = self._listenerDb.get_value(listenerId)
+        listener = self._listeners.get(listenerId)
 
-        if listener is None:
-            listener = ReminderListener(str(uuid.uuid4()))
-            self._listenerDb[listener.Id] = listener
-        elif eventId in listener.ReminderEvents:
-            return  False
+        if listener is None: # check if user is registered
+            listener = ReminderListener(listenerId)
+            self._listenerDb[listenerId] = listener
+            self._listeners[listenerId] = listener
+        elif eventId in listener.ReminderEvents: # Check if user is already listening to this reminder
+            return False
 
-        listener.ReminderEvents[event.Id] = 0
-        event.AddListener(listener.Id)
+        listener.ReminderEvents[eventId] = 0
+        event.AddListener(listenerId)
+
+        self._eventDb[eventId] = event
+        self._listenerDb[listenerId] = listener
 
         return True
 
     def RemoveListenerFromEvent(self, eventId: str, listenerId: str) -> bool:
-        event = self._eventDb.get_value(eventId)
-
+        event = self._events.get(eventId)
         if event is None:
             return False
 
-        listener = self._listenerDb.get_value(listenerId)
+        listener = self._listeners.get(listenerId)
+        if listener is None:
+            return False
+
+        # clear record for counting reminder triggers for this user
         listener.ReminderEvents[event.Id] = 0
+
+        # remove listener from event
         event.RemoveListener(listener.Id)
+
+        # update dbs
+        self._eventDb[eventId] = event
+        self._listenerDb[listenerId] = listener
 
         return True
 
@@ -199,22 +220,37 @@ class ReminderService:
         return self._listenerDb.get_value(listenerId)
 
     def RemoveListener(self, listenerId: str) -> bool:
-        listener = self._listenerDb.get_value(listenerId)
+        listener = self._listeners.get(listenerId)
         if listener is None:
             return False
 
         for eventId in listener.ReminderEvents.keys():
-            self._eventDb[eventId].RemoveListener(listenerId)
+            self._events[eventId].RemoveListener(listenerId)
 
-        del self._listenerDb[listenerId]
+        self.RemoveListenerRecord(listener)
         return True
 
-    async def Start(self):
+    def RemoveListenerRecord(self, listener: ReminderListener):
+        del self._listenerDb[listener.Id]
+        del self._listeners[listener.Id]
+
+    def RemoveEventRecord(self, event: RemindEvent):
+        del self._events[event.Id]
+        del self._eventDb[event.Id]
+
+    def Start(self):
         if not self._running:
+            print("Starting service... ", end="")
             self._running = True
+            self._eventDb.open()
+            self._listenerDb.open()
             self._task = asyncio.create_task(self._run())
+            return self._task
 
     def Stop(self):
         self._running = False
-        if self._task:
+        if self._task and self._running:
+            print("Stopping service... ", end="")
             self._task.cancel()
+        self._eventDb.close()
+        self._listenerDb.close()

@@ -1,7 +1,8 @@
-from common.dsc.gateways import *
+import asyncio
 
-#from _backdoor.controllers import * 
-#from _cyberpunk.controllers import *
+import hikari
+
+from common.dsc.gateways import *
 from _developer.controllers import *
 from _fabula.controllers import *
 from _fate.controllers import *
@@ -12,17 +13,20 @@ from _developer.models.reminder_service import *
 from _developer.local.db import REMINDER_EVENTS_DB, REMINDER_LISTENERS_DB
 from common.services import REGISTERED_SERVICES
 
-@BOT.listen(hikari.StartedEvent)
-async def on_started(event: hikari.StartedEvent):
-  custom_activity = hikari.Activity(name='Solarite', type=hikari.ActivityType.LISTENING)
-  await event.app.update_presence(activity=custom_activity)
+@BOT.listen()
+async def on_starting(event : hikari.StartedEvent):
+    custom_activity = hikari.Activity(name='Solarite', type=hikari.ActivityType.LISTENING)
+    await event.app.update_presence(activity=custom_activity)
+    REGISTERED_SERVICES[ReminderService] = ReminderService(REMINDER_LISTENERS_DB, REMINDER_EVENTS_DB, True)
+    REGISTERED_SERVICES[ReminderService].Initialize()
+    await REGISTERED_SERVICES[ReminderService].Start()
 
-reminder_service = ReminderService(REMINDER_LISTENERS_DB, REMINDER_EVENTS_DB)
-reminder_service.Initialize()
-reminder_service.Start()
+@BOT.listen(hikari.StoppingEvent)
+async def on_stopping(event):
+    REGISTERED_SERVICES[ReminderService].Stop()
 
-REGISTERED_SERVICES[ReminderService] = reminder_service
+try:
+    BOT.run()
+finally:
+    REGISTERED_SERVICES[ReminderService].Stop()
 
-BOT.run()
-
-reminder_service.Stop()

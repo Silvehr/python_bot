@@ -8,7 +8,6 @@ from common.models.date_parse import  *
 from common.services import REGISTERED_SERVICES
 from common.dsc.gateways import BOT
 from common.dsc.consts import *
-from ...local import *
 from common.dsc.gateways import *
 from common.models.Command import Command
 
@@ -35,7 +34,7 @@ async def cmd_ping(ctx: arc.GatewayContext):
   return await ctx.respond("pong!")
 
 @BOT.listen()
-async def set_reminder(event: hikari.DMMessageCreateEvent):
+async def ReminderCommands(event: hikari.DMMessageCreateEvent):
     if event.is_bot or not event.content:
         return
 
@@ -78,7 +77,7 @@ async def set_reminder(event: hikari.DMMessageCreateEvent):
                     service.RemoveReminderEvent(reminders[0].Id)
                     await event.message.respond(f"Successfully removed reminder **{reminderName}**")
                 elif len(reminders) > 1:
-                    response = "#Which one?\n"
+                    response = "# Which one?\n"
                     for reminders in reminders:
                         response += f"    Name: {reminders.Name}\n    Id: {reminders.Id}\n    Message: {reminders.Message}"
                     await event.message.respond(response)
@@ -86,7 +85,7 @@ async def set_reminder(event: hikari.DMMessageCreateEvent):
                     await event.message.respond(f"Reminder **\"{reminderName}\"** not found")
             elif cName == "get-reminder":
                 reminderName = command[0]
-                if len(reminderName):
+                if len(reminderName) == 0:
                     return
 
                 reminders = service.FindReminders(reminderName)
@@ -96,7 +95,7 @@ async def set_reminder(event: hikari.DMMessageCreateEvent):
                 else:
                     response = ""
                     for reminders in reminders:
-                        response += (f"#{reminders.Name} ({reminders.Id})\n"
+                        response += (f"# {reminders.Name} ({reminders.Id})\n"
                                      f"Next estimated invoke: {reminders.LastRun + reminders.Interval}\n"
                                      f"Reminder message : {reminders.Message}\n"
                                      f"Triggered **{reminders.TriggerCount}** times\n"
@@ -110,7 +109,7 @@ async def set_reminder(event: hikari.DMMessageCreateEvent):
                     await event.message.respond(response)
             elif cName == "add-listeners":
                 reminderName = command[0]
-                if len(reminderName):
+                if len(reminderName) == 0:
                     return
 
                 reminders = service.FindReminders(reminderName)
@@ -134,18 +133,23 @@ async def set_reminder(event: hikari.DMMessageCreateEvent):
                     await event.message.respond(f"No listener was provided")
                     return
 
+                notFoundListeners = ""
+                found = False
                 for listener in listeners:
-                    notFoundListeners = ""
+                    username = ""
+
                     try:
-                        BOT.rest.fetch_user(listener)
+                        username = (await BOT.rest.fetch_user(listener)).global_name
                         service.AddListenerToEvent(reminders.Id, listener)
+                        found = True
                     except hikari.errors.NotFoundError:
                         notFoundListeners+=f"    {listener}"
+                        found = False
 
-                    if len(notFoundListeners) > 0:
-                        await event.message.respond(f"These listeners were not found:\n {notFoundListeners}")
+                    if found:
+                        await event.message.respond(f"Successfully added {username} to the **{reminderName}** reminder")
                     else:
-                        await event.message.respond(f"Successfully added all listeners to the **{reminderName}** reminder")
+                        await  event.message.respond(f"Listener {listener} not found")
             elif cName == "del-listeners":
                 reminderName = command[0]
                 if len(reminderName) == 0:
@@ -157,7 +161,7 @@ async def set_reminder(event: hikari.DMMessageCreateEvent):
                     reminderName = reminders[0].Name
                     reminders = reminders[0]
                 elif len(reminders) > 1:
-                    response = "#Which one?\n"
+                    response = "# Which one?\n"
                     for reminders in reminders:
                         response += f"    Name: {reminders.Name}\n    Id: {reminders.Id}\n    Message: {reminders.Message}"
                     await event.message.respond(response)
@@ -183,6 +187,17 @@ async def set_reminder(event: hikari.DMMessageCreateEvent):
 
                     if found:
                         await event.message.respond(f"Successfully removed all {(await BOT.rest.fetch_user(listener)).global_name} reminders")
+            elif cName == "get-listener":
+                listener = service.GetListener(command[0])
+
+                if listener:
+                    result = f"# {(await BOT.rest.fetch_user(listener.Id)).global_name}"
+                    for reminder, t_c in listener.ReminderEvents.items():
+                        result +=f"    Reminder: **{service.GetReminderEventById(reminder).Name}** triggered **{t_c}** times\n"
+
+                    await event.message.respond(result)
+                else:
+                    await event.message.respond("Listener not found")
 
     except Exception as e:
         channel = await BOT.rest.create_dm_channel(MEINID)

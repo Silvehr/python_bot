@@ -1,24 +1,23 @@
 class Command:
     STANDARD_COMMAND_SEPARATOR = " "
     
-    _source : str
-    _split : list[str]
-    _separator : str = " "
-    
-    def __init__(self, source : str, separator : str):
-        self._source = source
+    def __init__(self, source : str, separator : str= " "):
+        self._source : str = source
 
         if len(separator) > 0:
-            self._separator = separator
-        self._split=source.split(self._separator)
+            self._separator : str = separator
+
+        self._split : list[str] = []
 
         c_arg = ""
         i = 0
 
         while i < len(source):
             c = source[i]
-            if c==' ' and len(c_arg) > 0:
-                self._split.append(c_arg)
+            if c==separator:
+                if len(c_arg) > 0:
+                    self._split.append(c_arg)
+                    c_arg=""
             elif c == '"':
                 end = source.find('"',i+1)
                 self._split.append(source[(i + 1):end])

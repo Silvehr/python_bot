@@ -88,6 +88,17 @@ class ShelveDB(Generic[TKey, TValue]):
         
     def values(self) -> ValuesView[TValue]:
         return self._shelf.values()
+
+    def open(self):
+        if not self._open:
+            self._shelf = shelve.open(str(self._db_path.absolute()))
+            self._open = True
+
+    def close(self):
+        if self._open:
+            self._shelf.sync()
+            self._shelf.close()
+            self._open = False
     
     #
     # if found:
