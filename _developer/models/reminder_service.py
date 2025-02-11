@@ -34,6 +34,7 @@ class RemindEvent:
         return False
 
     async def InvokeReminder(self, service : "ReminderService"):
+        self.TriggerCount+=1
         self.LastRun = datetime.now()
         for listener in self.Listeners:
             await (service.GetListener(listener)).Remind(self)
