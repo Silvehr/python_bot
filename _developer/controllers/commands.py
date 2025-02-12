@@ -1,3 +1,6 @@
+import hikari
+import traceback
+
 from common.dsc.gateways import *
 from common.dsc.consts import *
 from common.models.Command import *
@@ -34,14 +37,14 @@ async def cmd_ping(ctx: arc.GatewayContext):
   return await ctx.respond("pong!")
 
 @BOT.listen()
-async def ReminderCommands(event: hikari.DMMessageCreateEvent):
+async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
     if event.is_bot or not event.content:
         return
 
     try:
         command = Command(event.message.content, Command.STANDARD_COMMAND_SEPARATOR)
-        cName = command.command().lower()
         if command.prefix() == "!rpg":
+            cName = command.command().lower()
             service: ReminderService = REGISTERED_SERVICES[ReminderService]
 
             if cName== "new-reminder":
@@ -136,7 +139,6 @@ async def ReminderCommands(event: hikari.DMMessageCreateEvent):
                         await event.message.respond(f"Successfully added {username} to the **{reminderName}** reminder")
                     except hikari.errors.NotFoundError:
                         await  event.message.respond(f"Listener {listener} not found")
-
             elif cName == "del-listeners":
                 reminderName = command[0]
                 if len(reminderName) == 0:
@@ -148,6 +150,17 @@ async def ReminderCommands(event: hikari.DMMessageCreateEvent):
                 if len(reminders) == 1:
                     reminderName = reminders[0].Name
                     reminders = reminders[0]
+
+                    listeners = command.asList(1)
+
+                    if len(listeners) == 0:
+                        await event.message.respond(f"No listener was provided")
+                        return
+
+                    for listener in listeners:
+                        service.RemoveListenerFromEvent(reminders.Id, listener)
+                        await event.message.respond(
+                            f"Successfully removed {(await BOT.rest.fetch_user(listener)).global_name} from **{reminderName}** reminder")
                 elif len(reminders) > 1:
                     response = "# Which one?\n"
                     for reminders in reminders:
@@ -157,16 +170,6 @@ async def ReminderCommands(event: hikari.DMMessageCreateEvent):
                 else:
                     await event.message.respond(f"Reminder **\"{reminderName}\"** not found")
                     return
-
-                listeners = command.asList(1)
-
-                if len(listeners) == 0:
-                    await event.message.respond(f"No listener was provided")
-                    return
-
-                for listener in listeners:
-                    service.RemoveListenerFromEvent(reminders.Id, listener)
-                    await event.message.respond(f"Successfully removed {(await BOT.rest.fetch_user(listener)).global_name} from **{reminderName}** reminder")
             elif cName == "remove-listener":
                 listeners = command.asList(0)
 
@@ -186,10 +189,25 @@ async def ReminderCommands(event: hikari.DMMessageCreateEvent):
                     await event.message.respond(result)
                 else:
                     await event.message.respond("Listener not found")
+            elif cName == "read-all-listeners":
+                await event.message.respond("This process may take a while...")
+
+                for guildId in REGISTERED_GUILDS:
+                    guild = await BOT.rest.fetch_guild(guildId)
+                    for user in guild.get_members().values():
+                        if not user.is_bot:
+                            service.AddListener(user.id)
+
+                await event.message.respond("All users are ready!")
+            elif cName == "get-all-listeners":
+                response = "# All listeners\n"
+                for listener in service._listeners.values():
+                    response += f"{(await BOT.rest.fetch_user(listener.Id)).global_name}\n"
+                await event.message.respond(response)
 
     except Exception as e:
         channel = await BOT.rest.create_dm_channel(MEINID)
-        await  channel.send(e)
+        await channel.send(traceback.format_exc())
 
 
 @BOT.listen()
