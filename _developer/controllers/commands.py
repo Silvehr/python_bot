@@ -129,13 +129,6 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                         if command[paramIndex].lower() == "everyone":
                             paramIndex+=1
                             listenersIds = list(service._listeners.keys())
-                        elif command[paramIndex].lower() == "locals":
-                            await event.message.respond("This make take a while...")
-                            guild = event.get_guild()
-                            for member in guild.get_members().values():
-                                if not member.is_bot:
-                                    service.GetListener(str(member.id))
-                            await event.message.respond("Local users are ready!")
                         else:
                             while command[paramIndex].lower() != "say":
                                 if command[paramIndex].lower() == "me":
@@ -322,14 +315,22 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                     for listener in service._listeners.values():
                         response += f"{(await BOT.rest.fetch_user(listener.Id)).global_name}\n"
                     await event.message.respond(response)
-                elif action == "include" and command[1] == "all":
-                    await event.message.respond("This process may take a while...")
-                    for guildId in REGISTERED_GUILDS:
-                        guild = await BOT.rest.fetch_guild(guildId)
+                elif action == "include" :
+                    if command[1] == "all":
+                        await event.message.respond("This may take a while...")
+                        for guildId in REGISTERED_GUILDS:
+                            guild = await BOT.rest.fetch_guild(guildId)
+                            for member in guild.get_members().values():
+                                if not member.is_bot:
+                                    service.GetListener(str(member.id))
+                        await event.message.respond("All users are ready!")
+                    elif command[1] == "local":
+                        await event.message.respond("This make take a while...")
+                        guild = event.get_guild()
                         for member in guild.get_members().values():
                             if not member.is_bot:
                                 service.GetListener(str(member.id))
-                    await event.message.respond("All users are ready!")
+                        await event.message.respond("Local users are ready!")
 
     except Exception as e:
         channel = await BOT.rest.create_dm_channel(MEINID)
