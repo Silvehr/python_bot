@@ -275,7 +275,7 @@ class ReminderService:
 
         return True
 
-    def RemoveListenerFromEvent(self, reminderId: str, listenerId: str) -> bool:
+    def RemoveReminderListener(self, reminderId: str, listenerId: str) -> bool:
         event = self._events.get(reminderId)
         if event is None:
             return False
@@ -309,6 +309,11 @@ class ReminderService:
 
         self.RemoveListenerRecord(listener)
         return True
+
+    def RemoveEmptyListeners(self):
+        for listenerId, listener in self._listeners.items():
+            if len(listener.ReminderEvents) == 0:
+                self.RemoveListenerRecord(listener)
 
     def RemoveListenerRecord(self, listener: ReminderListener):
         del self._listenerDb[listener.Id]

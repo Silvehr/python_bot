@@ -187,7 +187,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                         return
 
                     for listener in listeners:
-                        service.RemoveListenerFromEvent(reminders.Id, listener)
+                        service.RemoveReminderListener(reminders.Id, listener)
                         await event.message.respond(
                             f"Successfully removed {(await BOT.rest.fetch_user(listener)).global_name} from **{reminderName}** reminder")
             elif target == "listener":
@@ -247,7 +247,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                             return
 
                     for matches in remindersMatches:
-                        service.RemoveListenerFromEvent(matches[0].Id, listenerId)
+                        service.RemoveReminderListener(matches[0].Id, listenerId)
             elif target == "listeners":
                 if action == "get" and command[1] == "all":
                     response = "# All listeners\n"
