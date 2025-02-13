@@ -126,7 +126,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
 
                         if command[paramIndex].lower() == "everyone":
                             paramIndex+=1
-                            listenersIds = list(service._listeners.values())
+                            listenersIds = list(service._listeners.keys())
                         else:
                             while command[paramIndex].lower() != "say":
                                 if command[paramIndex].lower() == "me":
