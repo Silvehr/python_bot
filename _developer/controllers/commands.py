@@ -121,6 +121,8 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                             parsedTime += interval
 
                     listenersIds: list[str] = []
+
+                    # Gather listeners
                     if command[paramIndex].lower() == "to":
                         paramIndex+=1
 

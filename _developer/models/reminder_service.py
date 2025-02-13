@@ -102,12 +102,12 @@ class ReminderListener:
     async def Remind(self, reminder: Reminder):
         if len(self._channelId) == 0:
             self._channel = await BOT.rest.create_dm_channel(self.Id)
-            self._channelId = self._channel.id
+            self._channelId = str(self._channel.id)
 
         elif self._channel is None:
             self._channel = await BOT.rest.fetch_channel(self._channelId)
 
-        await self._channel.send(reminder.GetFormattedMessage(self.Id))
+        await self._channel.send(reminder.GetFormattedMessage(self.Id, self.ReminderEvents[reminder.Id]))
 
         if self.ReminderEvents.get(reminder.Id) is None:
             self.ReminderEvents[reminder.Id] = 1
