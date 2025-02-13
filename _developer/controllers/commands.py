@@ -71,7 +71,19 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                     service: ReminderService = REGISTERED_SERVICES[ReminderService]
 
                     if isGlobal == 'true' or isGlobal == '1':
-                        await event.message.respond(f"Successfully created reminder **{service.AddNewGlobalReminder(reminderName, datetime(startDate.year, startDate.month, startDate.day, startTime.hour, startTime.minute, startTime.second), parse_timedelta(interval), message).Name}**")
+                        await event.message.respond(f"Successfully created reminder **{
+                        service.AddNewGlobalReminder(
+                            reminderName, 
+                            datetime(
+                                startDate.year, 
+                                startDate.month, 
+                                startDate.day, 
+                                startTime.hour, 
+                                startTime.minute, 
+                                startTime.second
+                            ), 
+                            parse_timedelta(interval), 
+                            message).Name}**")
                     else:
                         await event.message.respond(f"Successfully created reminder **{service.AddNewReminder(reminderName, datetime(startDate.year, startDate.month, startDate.day, startTime.hour, startTime.minute, startTime.second), parse_timedelta(interval), message).Name}**")
                 elif action == "del":

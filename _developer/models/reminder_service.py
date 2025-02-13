@@ -204,7 +204,7 @@ class ReminderService:
         print("[Stopped]")
 
     def AddNewGlobalReminder(self, reminderName: str, startDate : datetime, interval: timedelta, message: str):
-        eventToAdd = GlobalReminder(str(uuid.uuid4()), reminderName, startDate, interval, message, self._listeners.values())
+        eventToAdd = GlobalReminder(str(uuid.uuid4()), reminderName, startDate, interval, message, list(self._listeners.values()))
         self._eventDb[eventToAdd.Id] = eventToAdd
         self._events[eventToAdd.Id] = eventToAdd
         return eventToAdd
