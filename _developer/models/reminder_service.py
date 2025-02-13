@@ -107,12 +107,12 @@ class ReminderListener:
         elif self._channel is None:
             self._channel = await BOT.rest.fetch_channel(self._channelId)
 
-        await self._channel.send(reminder.GetFormattedMessage(self.Id, self.ReminderEvents[reminder.Id]))
-
         if self.ReminderEvents.get(reminder.Id) is None:
             self.ReminderEvents[reminder.Id] = 1
         else:
             self.ReminderEvents[reminder.Id] += 1
+
+        await self._channel.send(reminder.GetFormattedMessage(self.Id, self.ReminderEvents[reminder.Id]))
 
 class ReminderService:
     def __init__(self, listenerDb : ShelveDB[str, ReminderListener], reminderDb: ShelveDB[str, Reminder], debug_mode: bool = False):
