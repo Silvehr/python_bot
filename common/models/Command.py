@@ -14,7 +14,7 @@ class Command:
 
         while i < len(source):
             c = source[i]
-            if c==separator:
+            if c==' ' or c == '\n' or c == '\t':
                 if len(c_arg) > 0:
                     self._split.append(c_arg)
                     c_arg=""

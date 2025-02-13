@@ -209,7 +209,7 @@ class ReminderService:
         self._events[eventToAdd.Id] = eventToAdd
         return eventToAdd
 
-    def AddNewReminderEvent(self, eventName: str, startDate : datetime, interval: timedelta, message: str) -> RemindEvent:
+    def AddNewReminder(self, eventName: str, startDate : datetime, interval: timedelta, message: str) -> RemindEvent:
         eventToAdd = RemindEvent(str(uuid.uuid4()), eventName, startDate, interval, message)
         self._eventDb[eventToAdd.Id] = eventToAdd
         self._events[eventToAdd.Id] = eventToAdd
@@ -253,8 +253,8 @@ class ReminderService:
             self._listenerDb[listenerId] = listener
             self._listeners[listenerId] = listener
 
-    def AddListenerToEvent(self, eventId: str, listenerId: str) -> bool:
-        event = self._events.get(eventId)
+    def AddListenerToReminder(self, reminderId: str, listenerId: str) -> bool:
+        event = self._events.get(reminderId)
 
         if event is None:
             return False
@@ -265,18 +265,18 @@ class ReminderService:
             listener = ReminderListener(listenerId)
             self._listenerDb[listenerId] = listener
             self._listeners[listenerId] = listener
-        elif eventId in listener.ReminderEvents: # Check if user is already listening to this reminder
+        elif reminderId in listener.ReminderEvents: # Check if user is already listening to this reminder
             return False
 
         event.AddListeners(listenerId)
 
-        self._eventDb[eventId] = event
+        self._eventDb[reminderId] = event
         self._listenerDb[listenerId] = listener
 
         return True
 
-    def RemoveListenerFromEvent(self, eventId: str, listenerId: str) -> bool:
-        event = self._events.get(eventId)
+    def RemoveListenerFromEvent(self, reminderId: str, listenerId: str) -> bool:
+        event = self._events.get(reminderId)
         if event is None:
             return False
 
@@ -291,7 +291,7 @@ class ReminderService:
         event.RemoveListeners(listener.Id)
 
         # update dbs
-        self._eventDb[eventId] = event
+        self._eventDb[reminderId] = event
         self._listenerDb[listenerId] = listener
 
         return True
