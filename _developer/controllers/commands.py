@@ -129,6 +129,13 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                         if command[paramIndex].lower() == "everyone":
                             paramIndex+=1
                             listenersIds = list(service._listeners.keys())
+                        elif command[paramIndex].lower() == "locals":
+                            await event.message.respond("This make take a while...")
+                            guild = event.get_guild()
+                            for member in guild.get_members().values():
+                                if not member.is_bot:
+                                    service.GetListener(str(member.id))
+                            await event.message.respond("Local users are ready!")
                         else:
                             while command[paramIndex].lower() != "say":
                                 if command[paramIndex].lower() == "me":
