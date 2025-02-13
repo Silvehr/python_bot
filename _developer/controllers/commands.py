@@ -178,7 +178,6 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                         service.RemoveListenerFromEvent(reminders.Id, listener)
                         await event.message.respond(
                             f"Successfully removed {(await BOT.rest.fetch_user(listener)).global_name} from **{reminderName}** reminder")
-                ...
             elif target == "listener":
                 listenerId = command[1]
                 if action == "del":

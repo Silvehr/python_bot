@@ -76,14 +76,14 @@ class RemindEvent:
         return result
 
 class GlobalReminder:
-    def __init__(self, eventId: str, eventName: str, startDate : datetime, interval: timedelta, message: str):
+    def __init__(self, eventId: str, eventName: str, startDate : datetime, interval: timedelta, message: str, listeners):
         self.Id = eventId
         self.Name = eventName
         self.Message = message
         self.LastRun = startDate
         self.Interval = interval
         self.TriggerCount = 1
-        self.Listeners: list[str] = []
+        self.Listeners: list[str] = listeners
 
     def AddListeners(self, *clientIds: str):
         for clientId in clientIds:
@@ -98,8 +98,8 @@ class GlobalReminder:
     async def InvokeReminder(self, service : "ReminderService"):
         self.TriggerCount+=1
         self.LastRun = datetime.now()
-        for listener in service._listeners.values():
-            await listener.Remind(self)
+        for listener in self.Listeners:
+            await (service.GetListener(listener)).Remind(self)
 
     def GetFormattedMessage(self,*args):
         cStart: int = 0
@@ -204,7 +204,7 @@ class ReminderService:
         print("[Stopped]")
 
     def AddNewGlobalReminder(self, reminderName: str, startDate : datetime, interval: timedelta, message: str):
-        eventToAdd = GlobalReminder(str(uuid.uuid4()), reminderName, startDate, interval, message)
+        eventToAdd = GlobalReminder(str(uuid.uuid4()), reminderName, startDate, interval, message, self._listeners.values())
         self._eventDb[eventToAdd.Id] = eventToAdd
         self._events[eventToAdd.Id] = eventToAdd
         return eventToAdd
