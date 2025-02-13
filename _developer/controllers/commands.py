@@ -260,7 +260,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                         guild = await BOT.rest.fetch_guild(guildId)
                         for member in guild.get_members().values():
                             if not member.is_bot:
-                                service.AddListener(member)
+                                service.AddListener(member.id)
                     await event.message.respond("All users are ready!")
 
     except Exception as e:
