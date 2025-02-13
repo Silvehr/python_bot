@@ -22,6 +22,10 @@ def parse_datetime(str_datetime: str):
 
 # dd-mm-yyyy
 def parse_date(str_date:str):
+    str_date = str_date.lower()
+    if str_date == "today":
+        return date.today()
+
     splitted = str_date.split('-')
 
     d = int(splitted[0])
@@ -32,6 +36,11 @@ def parse_date(str_date:str):
 
 # hh-mm-ss
 def parse_time(str_time: str):
+    str_time = str_time.lower()
+    if str_time == "now":
+        now = datetime.now()
+        return time(now.hour,now.minute, now.second)
+
     splitted = str_time.split('-')
 
     if len(splitted) < 3:

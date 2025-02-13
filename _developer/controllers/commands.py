@@ -43,49 +43,108 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
 
     try:
         command = Command(event.message.content)
+        paramIndex: int = 0
         if command.prefix() == "!rpg":
-            target = command.command().lower()
+            target: str = command.command().lower()
             service: ReminderService = REGISTERED_SERVICES[ReminderService]
 
-            action = command[0].lower()
+            action: str = command[paramIndex].lower()
+            paramIndex+=1
             if target == "reminder":
-                reminderName = command[1]
+                reminderName: str = command[paramIndex]
+                paramIndex+=1
                 if action == "new":
-                    startDate = command[2]
-                    if startDate == '!':
-                        startDate = date.today()
+
+                    # at => triggers once
+                    # from => triggers multiple times
+                    reminderTypeOperator: str = command[paramIndex].lower()
+                    nowOperatorUsed: bool =False
+                    paramIndex+=1
+
+                    if reminderTypeOperator not in "at from":
+                        await event.message.respond(f"Unexpected value \"{reminderTypeOperator}\"")
+
+                    startDate: str = command[paramIndex].lower()
+                    paramIndex += 1
+
+                    if startDate != "now":
+                        try:
+                            startDate: date = parse_date(startDate)
+                        except:
+                            await event.message.respond(f"\"{startDate}\" cannot be interpreted as date")
+                            return
+
+                        startTime: str = command[paramIndex].lower()
+                        paramIndex += 1
+
+                        try:
+                            startTime: time = parse_time(startTime)
+                        except:
+                            await event.message.respond(f"\"{startTime}\" cannot be interpreted as time")
+                            return
+
+                        parsedTime: datetime = datetime(startDate.year, startDate.month, startDate.day, startTime.hour,
+                                              startTime.minute, startTime.second)
                     else:
-                        startDate = parse_date(startDate)
+                        nowOperatorUsed = True
+                        parsedTime = datetime.now()
 
-                    startTime = command[3]
-                    if startTime == '!':
-                        now = datetime.now()
-                        startTime = time(now.hour, now.minute, now.second)
+                    interval = timedelta(0, 0, 0, 0, 0, 0, 0)
+                    triggerCount = -1
+
+                    if reminderTypeOperator == "from":
+                        if command[paramIndex].lower() == "times":
+                            paramIndex+=1
+
+                            try:
+                                triggerCount = int(command[paramIndex])
+                                paramIndex += 1
+                            except:
+                                await event.message.respond(
+                                    f"\"{command[paramIndex]}\" cannot be interpreted as integer")
+                                return
+                        else:
+                            triggerCount = -1
+
+                        if command[paramIndex].lower() == "every":
+                            paramIndex += 1
+
+                        try:
+                            interval = parse_timedelta(command[paramIndex])
+                            paramIndex += 1
+                        except:
+                            await event.message.respond(
+                                f"\"{command[paramIndex]}\" cannot be parsed as time difference")
+                            return
+
+                        if nowOperatorUsed:
+                            parsedTime += interval
+
+                    listenersIds: list[str] = []
+                    if command[paramIndex].lower() == "to":
+                        paramIndex+=1
+
+                        if command[paramIndex].lower() == "everyone":
+                            paramIndex+=1
+                            listenersIds = list(service._listeners.values())
+                        else:
+                            while command[paramIndex].lower() != "say":
+                                if command[paramIndex].lower() == "me":
+                                    listenersIds.append(str(event.author_id))
+                                else:
+                                    listenersIds.append(command[paramIndex])
+                                paramIndex+=1
+
+                    if command[paramIndex].lower() == "say":
+                        paramIndex+=1
+                    message = command[paramIndex]
+
+                    if reminderTypeOperator == "at":
+                        await event.message.respond(f"Successfully created reminder **{service.AddNewReminder(reminderName, message, parsedTime, listeners=listenersIds).Name}**")
                     else:
-                        startTime = parse_time(startTime)
-
-                    interval = command[4]
-                    message = command[5]
-                    isGlobal = command[6].lower()
-
-                    service: ReminderService = REGISTERED_SERVICES[ReminderService]
-
-                    if isGlobal == 'true' or isGlobal == '1':
                         await event.message.respond(f"Successfully created reminder **{
-                        service.AddNewGlobalReminder(
-                            reminderName, 
-                            datetime(
-                                startDate.year, 
-                                startDate.month, 
-                                startDate.day, 
-                                startTime.hour, 
-                                startTime.minute, 
-                                startTime.second
-                            ), 
-                            parse_timedelta(interval), 
-                            message).Name}**")
-                    else:
-                        await event.message.respond(f"Successfully created reminder **{service.AddNewReminder(reminderName, datetime(startDate.year, startDate.month, startDate.day, startTime.hour, startTime.minute, startTime.second), parse_timedelta(interval), message).Name}**")
+                        service.AddNewReminder(reminderName, message, parsedTime, interval, triggerCount, listenersIds).Name}**")
+
                 elif action == "del":
                     if len(reminderName) == 0:
                         return
@@ -101,7 +160,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                         await event.message.respond(f"Reminder **\"{reminderName}\"** not found")
 
                     reminderName = reminders[0].Name
-                    service.RemoveReminderEvent(reminders[0].Id)
+                    service.RemoveReminder(reminders[0].Id)
                     await event.message.respond(f"Successfully removed reminder **{reminderName}**")
                 elif action == "get":
                     if len(reminderName) == 0:
@@ -115,7 +174,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                         response = ""
                         for reminders in reminders:
                             response += (f"# {reminders.Name} ({reminders.Id})\n"
-                                         f"Next estimated invoke: {reminders.LastRun + reminders.Interval}\n"
+                                         f"Next estimated invoke: {reminders.NextRun + reminders.Interval}\n"
                                          f"Reminder message : {reminders.Message}\n"
                                          f"Triggered **{reminders.TriggerCount}** times\n"
                                          f"Listeners:\n")
@@ -208,7 +267,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                 elif action == "add" and command[1] == "reminders":
                     listenerId = command[2]
                     if service.GetListener(listenerId) is None:
-                        service.AddListener(listenerId)
+                        service.GetListener(listenerId)
 
                     reminders = command.asList(2)
                     remindersMatches = []
@@ -260,7 +319,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                         guild = await BOT.rest.fetch_guild(guildId)
                         for member in guild.get_members().values():
                             if not member.is_bot:
-                                service.AddListener(member.id)
+                                service.GetListener(str(member.id))
                     await event.message.respond("All users are ready!")
 
     except Exception as e:
