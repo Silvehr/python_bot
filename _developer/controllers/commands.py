@@ -1,6 +1,7 @@
 import hikari
 import traceback
 
+from common.dsc import try_response
 from common.dsc.gateways import *
 from common.dsc.consts import *
 from common.models.Command import *
@@ -13,23 +14,24 @@ from common.dsc.gateways import BOT
 from common.dsc.consts import *
 from common.dsc.gateways import *
 from common.models.Command import Command
+from common.dsc.functions import get_discord_user
+import tcrutils as tcr
 
 import os
 import shutil
 import sys
 
-import tcrutils as tcr
 
 @ACL.include
 @arc.slash_command('dev', 'moje nie dam')
 async def cmd_dev(ctx: arc.GatewayContext, code: arc.Option[str, arc.StrParams('kodzik nie dla frajerów')]):
-  if str(ctx.author.id) not in DEV_COMMAND_BENEFICARIES:
-    return await ctx.respond('nie dla psa kiełabasa frajerze moje')
-  try:
-    result = tcr.codeblock(tcr.fmt_iterable(eval(code), syntax_highlighting=True), langcode='ansi')
-  except Exception as e:
-    result = f'{tcr.codeblock(tcr.extract_error(e), langcode="txt" )}\n{tcr.codeblock(tcr.extract_traceback(e), langcode="py")}'
-  await ctx.respond(result)
+    if str(ctx.author.id) not in DEV_COMMAND_BENEFICARIES:
+        return await ctx.respond('nie dla psa kiełabasa frajerze moje')
+    try:
+        result = tcr.codeblock(tcr.fmt_iterable(eval(code), syntax_highlighting=True), langcode='ansi')
+    except Exception as e:
+        result = str(e)
+    await ctx.respond(result)
   
 @ACL.include
 @arc.slash_command("ping", "Komenda do weryfikacji aktywności bota")
@@ -48,24 +50,26 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
             target: str = command.command().lower()
             service: ReminderService = REGISTERED_SERVICES[ReminderService]
 
-            action: str = command[paramIndex].lower()
-            paramIndex+=1
-            if target == "reminder":
-                reminderName: str = command[paramIndex]
-                paramIndex+=1
-                if action == "new":
+            action: str = command.Current.lower()
+            if not command.MoveNext():
+                return
 
+            if target == "reminder":
+
+                if action == "new":
+                    reminderName: str = command.Current
+                    command.MoveNext()
                     # at => triggers once
                     # from => triggers multiple times
-                    reminderTypeOperator: str = command[paramIndex].lower()
+                    reminderTypeOperator: str = command.Current.lower()
+                    command.MoveNext()
                     nowOperatorUsed: bool =False
-                    paramIndex+=1
 
                     if reminderTypeOperator not in "at from":
                         await event.message.respond(f"Unexpected value \"{reminderTypeOperator}\"")
 
-                    startDate: str = command[paramIndex].lower()
-                    paramIndex += 1
+                    startDate: str = command.Current.lower()
+                    command.MoveNext()
 
                     if startDate != "now":
                         try:
@@ -93,12 +97,12 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                     triggerCount = -1
 
                     if reminderTypeOperator == "from":
-                        if command[paramIndex].lower() == "times":
-                            paramIndex+=1
+                        if command.Current.lower() == "times":
+                            command.MoveNext()
 
                             try:
-                                triggerCount = int(command[paramIndex])
-                                paramIndex += 1
+                                triggerCount = int(command.Current)
+                                command.MoveNext()
                             except:
                                 await event.message.respond(
                                     f"\"{command[paramIndex]}\" cannot be interpreted as integer")
@@ -106,15 +110,15 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                         else:
                             triggerCount = -1
 
-                        if command[paramIndex].lower() == "every":
-                            paramIndex += 1
+                        if command.Current.lower() == "every":
+                            command.MoveNext()
 
                         try:
-                            interval = parse_timedelta(command[paramIndex])
-                            paramIndex += 1
+                            interval = parse_timedelta(command.Current)
+                            command.MoveNext()
                         except:
                             await event.message.respond(
-                                f"\"{command[paramIndex]}\" cannot be parsed as time difference")
+                                f"\"{command.Current}\" cannot be parsed as time difference")
                             return
 
                         if nowOperatorUsed:
@@ -123,33 +127,39 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                     listenersIds: list[str] = []
 
                     # Gather listeners
-                    if command[paramIndex].lower() == "to":
-                        paramIndex+=1
+                    if command.Current.lower() == "to":
+                        command.MoveNext()
 
-                        if command[paramIndex].lower() == "everyone":
-                            paramIndex+=1
+                        if command.Current.lower() == "everyone":
+                            command.MoveNext()
                             listenersIds = list(service._listeners.keys())
                         else:
-                            while command[paramIndex].lower() != "say":
-                                if command[paramIndex].lower() == "me":
-                                    listenersIds.append(str(event.author_id))
-                                else:
-                                    listenersIds.append(command[paramIndex])
-                                paramIndex+=1
+                            while command.Current.lower() != "say":
+                                user = await get_discord_user(command.Current, event.author)
+                                if user is None:
+                                    await event.message.respond(f"Listener \"{command.Current}\" not found")
 
-                    if command[paramIndex].lower() == "say":
-                        paramIndex+=1
-                    message = command[paramIndex]
+                                listenersIds.append(str(user.id))
+                                if not command.MoveNext():
+                                    await event.message.respond("No message provided")
+                                    return
+
+                    if command.Current.lower() == "say":
+                        command.MoveNext()
+                    message = command.Current
 
                     if reminderTypeOperator == "at":
                         await event.message.respond(f"Successfully created reminder **{service.AddNewReminder(reminderName, message, parsedTime, listeners=listenersIds).Name}**")
                     else:
                         await event.message.respond(f"Successfully created reminder **{
                         service.AddNewReminder(reminderName, message, parsedTime, interval, triggerCount, listenersIds).Name}**")
+                elif action in "delete":
+                    reminderName: str = command.Current
 
-                elif action == "del":
                     if len(reminderName) == 0:
                         return
+
+                    command.MoveNext()
 
                     reminders = service.FindReminders(reminderName)
 
@@ -165,6 +175,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                     service.RemoveReminder(reminders[0].Id)
                     await event.message.respond(f"Successfully removed reminder **{reminderName}**")
                 elif action == "get":
+                    reminderName: str = command.Current
                     if len(reminderName) == 0:
                         return
 
@@ -182,14 +193,20 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                                          f"Listeners:\n")
 
                             for listener in reminders.Listeners:
-                                response += f"    <@{listener}>"
+                                response += f"    <@{listener}>\n"
 
                             response += "\n"
 
                         await event.message.respond(response)
-                elif action == "add" and command[1] == "listeners":
-                    reminderName = command[2]
+                elif action == "add":
+                    if command.Current.lower() == "to":
+                        command.MoveNext()
+
+                    reminderName = command.Current
+                    command.MoveNext()
+
                     if len(reminderName) == 0:
+                        await event.message.respond("No reminder was provided")
                         return
 
                     reminders = service.FindReminders(reminderName)
@@ -198,80 +215,114 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                         await event.message.respond(f"Reminder **\"{reminderName}\"** not found")
                         return
                     elif len(reminders) > 1:
-                        response = "#Which one?"
+                        response = "#Which one?\n"
                         for reminder in reminders:
                             response += f"    Name: {reminder.Name}\n    Id: {reminder.Id}\n    Message: {reminder.Message}"
+                        await try_response(event.message, response,"Ambiguity occurred while searching for reminders. **Try by writing longer part of the name** or by **inserting reminder ID**")
                         return
 
                     reminders = reminders[0]
-
                     reminderName = reminders.Name
-                    listeners = command.asList(2)
+
+                    if command.Current.lower() == "listeners":
+                        command.MoveNext()
+
+                    listeners = command.OtherToList()
 
                     if len(listeners) == 0:
                         await event.message.respond(f"No listener was provided")
                         return
-
                     for listener in listeners:
-                        try:
-                            username = (await BOT.rest.fetch_user(listener)).global_name
-                            service.AddListenerToReminder(reminders.Id, listener)
-                            await event.message.respond(
-                                f"Successfully added {username} to the **{reminderName}** reminder")
-                        except hikari.errors.NotFoundError:
+                        user = await get_discord_user(listener, event.author)
+                        if user is None:
                             await  event.message.respond(f"Listener {listener} not found")
-                elif action == "rem" and command[1] == "listeners":
-                    reminderName = command[2]
+                        else:
+                            listener = str(user.id)
+                            service.AddListenerToReminder(reminders.Id, listener)
+                            await event.message.respond(f"Successfully added {user.global_name} to the **{reminderName}** reminder")
+                elif action in "remove":
+                    if command.Current.lower() == "from":
+                        command.MoveNext()
+
+                    reminderName = command.Current
+                    if not command.MoveNext():
+                        await event.message.respond("No listeners provided")
+
                     if len(reminderName) == 0:
                         await event.message.respond(f"No event was provided")
                         return
 
                     reminders = service.FindReminders(reminderName)
 
-                    if len(reminders) > 1:
-                        response = "# Which one?\n"
-                        for reminders in reminders:
-                            response += f"    Name: {reminders.Name}\n    Id: {reminders.Id}\n    Message: {reminders.Message}"
-                        await event.message.respond(response)
-                        return
-                    elif len(reminders) == 0:
+                    if len(reminders) == 0:
                         await event.message.respond(f"Reminder **\"{reminderName}\"** not found")
+                        return
+                    elif len(reminders) > 1:
+                        response = "#Which one?\n"
+                        for reminder in reminders:
+                            response += f"    Name: {reminder.Name}\n    Id: {reminder.Id}\n    Message: {reminder.Message}"
+                        await try_response(event.message, response,
+                                           "Ambiguity occurred while searching for reminders. \n\n"+
+                                           "**Try by writing longer part of the name** or by **inserting reminder ID**")
                         return
 
                     reminderName = reminders[0].Name
                     reminders = reminders[0]
 
-                    listeners = command.asList(1)
+                    if command.Current.lower() == "listeners":
+                        command.MoveNext()
+
+                    listeners = command.OtherToList()
 
                     if len(listeners) == 0:
                         await event.message.respond(f"No listener was provided")
                         return
 
                     for listener in listeners:
-                        service.RemoveReminderListener(reminders.Id, listener)
-                        await event.message.respond(
-                            f"Successfully removed {(await BOT.rest.fetch_user(listener)).global_name} from **{reminderName}** reminder")
+                        user = await get_discord_user(listener, event.author)
+                        if user is None:
+                            await event.message.respond(f"Listener \"{listener}\" not found")
+                        else:
+                            service.RemoveReminderListener(reminders.Id, listener)
+                            await event.message.respond(f"Successfully removed {user.global_name} from **{reminderName}** reminder")
             elif target == "listener":
-                listenerId = command[1]
-                if action == "del":
+                if action in "delete":
+                    listenerId = command.Current
+                    command.MoveNext()
+
                     if service.RemoveListener(listenerId):
                         await event.message.respond(f"Successfully removed all {(await BOT.rest.fetch_user(listenerId)).global_name} reminders")
                 elif action == "get":
-                    listener = service.GetListener(command[0])
-                    if listener:
-                        result = f"# {(await BOT.rest.fetch_user(listenerId)).global_name}"
-                        for reminder, t_c in listener.ReminderEvents.items():
-                            result += f"    Reminder: **{service.GetReminderEventById(reminder).Name}** triggered **{t_c}** times\n"
+                    listenerId = command.Current
+                    command.MoveNext()
 
-                        await event.message.respond(result)
-                    else:
-                        await event.message.respond("Listener not found")
-                elif action == "add" and command[1] == "reminders":
-                    listenerId = command[2]
-                    if service.GetListener(listenerId) is None:
-                        service.GetListener(listenerId)
+                    user = await get_discord_user(listenerId, event.author)
 
-                    reminders = command.asList(2)
+                    if user is None:
+                        await event.message.respond(f"Listener \"{listenerId}\" not found")
+
+                    listener = service.GetListener(listenerId)
+                    result = f"# {user.global_name}"
+                    for reminder, t_c in listener.ReminderEvents.items():
+                        result += f"    Reminder: **{service.GetReminderEventById(reminder).Name}** triggered **{t_c}** times\n"
+
+                    await event.message.respond(result)
+
+                elif action == "add":
+                    if command.Current.lower() == "to":
+                        command.MoveNext()
+
+                    listenerId = command.Current
+                    command.MoveNext()
+                    user = get_discord_user(listenerId, event.author)
+                    if user is None:
+                        await event.message.respond(f"Could not find user \"**{listenerId}**\"")
+                        return
+
+                    if command.Current.lower() == "reminders":
+                        command.MoveNext()
+
+                    reminders = command.OtherToList()
                     remindersMatches = []
                     for reminder in reminders:
                         remindersMatches.append(service.FindReminders(reminder))
@@ -287,12 +338,16 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
 
                     for matches in remindersMatches:
                         service.AddListenerToReminder(matches[0].Id, listenerId)
-                elif action == "rem" and command[1] == "reminders":
-                    listenerId = command[2]
+
+                elif action in "remove" :
+                    if command.Current == "reminders":
+                        command.MoveNext()
+                    listenerId = command.Current
+                    command.MoveNext()
                     if service.GetListener(listenerId) is None:
                         await event.message.respond(f"Listener with id of **\"{listenerId}\"** not found")
 
-                    reminders = command.asList(2)
+                    reminders = command.OtherToList()
                     remindersMatches = []
                     for reminder in reminders:
                         remindersMatches.append(service.FindReminders(reminder))
@@ -310,7 +365,9 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                     for matches in remindersMatches:
                         service.RemoveReminderListener(matches[0].Id, listenerId)
             elif target == "listeners":
-                if action == "get" and command[1] == "all":
+                if action == "get":
+                    if command.Current == "all":
+                        command.MoveNext()
                     response = "# All listeners\n"
                     for listener in service._listeners.values():
                         response += f"{(await BOT.rest.fetch_user(listener.Id)).global_name}\n"
@@ -324,7 +381,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                                 if not member.is_bot:
                                     service.GetListener(str(member.id))
                         await event.message.respond("All users are ready!")
-                    elif command[1] == "local":
+                    elif command.Current == "local":
                         await event.message.respond("This make take a while...")
                         guild = event.get_guild()
                         for member in guild.get_members().values():

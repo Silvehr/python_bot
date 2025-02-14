@@ -1,1 +1,1 @@
-from .EA_Client import *
+from .EAClient import *

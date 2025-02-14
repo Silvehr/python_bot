@@ -3,8 +3,6 @@ from common.dsc import *
 
 from ...local import *
 
-import tcrutils as tcr
-
 @ACL.include
 @arc.slash_command('add-player-to-fabula-campaign', 'dodaje gracza do kampani w systemie fabula')
 async def cmd_add_player_to_fabula_campaign(

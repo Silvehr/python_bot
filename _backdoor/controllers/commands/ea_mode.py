@@ -25,7 +25,7 @@ async def cmd_ea_mode(event: hikari.GuildMessageCreateEvent):
                 guild = SERWER_ANTKA
                 
             if not (user in EA_MODE_CLIENTS_DB):
-                EA_MODE_CLIENTS_DB[user] = EA_Client(user)
+                EA_MODE_CLIENTS_DB[user] = EAClient(user)
                 
                 
             if action.lower() == "enable":

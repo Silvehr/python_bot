@@ -1,9 +1,6 @@
 from common.dsc.gateways import *
-
 from _fabula.local import *
-
 import random as rng
-import tcrutils as tcr
 
 @ACL.include
 @arc.slash_command('fabula-roll', 'rzuca na staty twojej postaci w fabula ultima')

@@ -30,6 +30,8 @@ class Command:
 
         if len(c_arg) > 0:
             self._split.append(c_arg)
+
+        self._currentIndex = 2
                 
     
     def prefix(self):
@@ -38,8 +40,8 @@ class Command:
     def command(self):
         return self._split[1]
 
-    def asList(self, startIndex):
-        return self._split[2+startIndex:]
+    def OtherToList(self):
+        return self._split[self._currentIndex:]
 
     def __getitem__(self, item: int):
         if len(self._split) - 2 >= 0:
@@ -52,3 +54,14 @@ class Command:
             return self._split[2 + arg_i]
         else:
             return ""
+
+    @property
+    def Current(self) -> str:
+        return self._split[self._currentIndex]
+
+    def MoveNext(self) -> bool:
+        if len(self._split) > self._currentIndex:
+            self._currentIndex+=1
+            return True
+        else:
+            return False

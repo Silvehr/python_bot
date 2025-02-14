@@ -215,7 +215,8 @@ class ReminderService:
             return False
 
         for listenerId in event.Listeners:
-            del self._listenerDb[listenerId].ReminderEvents[eventId]
+            if self._listenerDb[listenerId].ReminderEvents.get(eventId) is not None:
+                del self._listenerDb[listenerId].ReminderEvents[eventId]
 
         self.RemoveEventRecord(event)
 
@@ -225,19 +226,15 @@ class ReminderService:
         if event is None:
             return False
 
-        listener = self._listeners.get(listenerId)
+        listener = self.GetListener(listenerId)
 
-        if listener is None: # check if user is registered
-            listener = ReminderListener(listenerId)
-            self._listenerDb[listenerId] = listener
-            self._listeners[listenerId] = listener
-        elif reminderId in listener.ReminderEvents: # Check if user is already listening to this reminder
+        if reminderId in listener.ReminderEvents: # Check if user is already listening to this reminder
             return False
 
         event.AddListeners(listenerId)
 
         self._reminderDb[reminderId] = event
-        self._listenerDb[listenerId] = listener
+        self.SaveListener(listener)
 
         return True
 
@@ -258,7 +255,7 @@ class ReminderService:
 
         # update dbs
         self._reminderDb[reminderId] = event
-        self._listenerDb[listenerId] = listener
+        self.SaveListener(listener)
 
         return True
 
@@ -266,7 +263,7 @@ class ReminderService:
         listener = self._listenerDb.get_value(listenerId)
         if listener is None:
             listener = ReminderListener(listenerId)
-            self._listenerDb[listenerId] = listener
+            self.SaveListener(listener)
             self._listeners[listenerId] = listener
 
         return listener

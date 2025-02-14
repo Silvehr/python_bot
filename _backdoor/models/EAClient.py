@@ -1,4 +1,4 @@
-class EA_Client:
+class EAClient:
     user_id : str
     enabled : bool
     
