@@ -59,8 +59,11 @@ class Command:
             return ""
 
     @property
-    def Current(self) -> str:
-        return self._split[self._currentIndex]
+    def Current(self) -> str | None:
+        if self._currentIndex >= len(self._split)
+            return None
+        else:
+            return self._split[self._currentIndex]
 
     def MoveNext(self) -> bool:
         if len(self._split) > self._currentIndex:
