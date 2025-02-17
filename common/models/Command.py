@@ -37,8 +37,11 @@ class Command:
     def prefix(self):
         return self._split[0]
     
-    def command(self):
-        return self._split[1]
+    def command(self) -> str | None:
+        if len(self._split) == 0:
+            return None
+        else:
+            return self._split[1]
 
     def OtherToList(self):
         return self._split[self._currentIndex:]
