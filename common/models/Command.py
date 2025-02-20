@@ -60,7 +60,7 @@ class Command:
 
     @property
     def Current(self) -> str | None:
-        if self._currentIndex >= len(self._split)
+        if self._currentIndex >= len(self._split):
             return None
         else:
             return self._split[self._currentIndex]

@@ -50,12 +50,12 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
             target: str = command.command()
             if target is None:
                 return
-            target = traget.lower()
+            target = target.lower()
             service: ReminderService = REGISTERED_SERVICES[ReminderService]
 
             if target == "reminder":
                 action: str = command.Current
-                if action is None
+                if action is None:
                     return
                 
                 action = action.lower()
@@ -243,11 +243,11 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                     else:
                         response = ""
                         for reminder in reminders:
-                            response += (f"# {reminder.Name} ({reminder.Id})\n"
-                                         f"Next estimated invoke: {reminder.NextRun + reminder.Interval}\n"
-                                         f"Reminder message : {reminder.Message}\n"
-                                         ("" if reminder.TriggerCount == -1 else f"Triggers left: **{reminder.TriggerCount}**")
-                                         f"Listeners:\n")
+                            response += (f"# {reminder.Name} ({reminder.Id})\n"+
+                                        f"Next estimated invoke: {reminder.NextRun + reminder.Interval}\n"+
+                                        f"Reminder message : {reminder.Message}\n"+
+                                        ("" if reminder.TriggerCount == -1 else f"Triggers left: **{reminder.TriggerCount}**")+
+                                        f"Listeners:\n")
 
                             for listener in reminders.Listeners:
                                 response += f"    <@{listener}>\n"
@@ -356,7 +356,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                             await event.message.respond(f"Successfully removed {user.global_name} from **{reminderName}** reminder")
             elif target == "listener":
                 if action in "delete":
-                    listenerId: str : None = command.Current
+                    listenerId: str | None = command.Current
                     if listenerId is None:
                         await event.message.respond("No listener was provided")
                     else:
@@ -370,7 +370,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                     if service.RemoveListener(listenerId):
                         await event.message.respond(f"Successfully removed all {user.global_name} reminders")
                 elif action == "get":
-                    listenerId: str : None = command.Current
+                    listenerId: str | None = command.Current
                     if listenerId is None:
                         await event.message.respond("No listener was provided")
                     else:
